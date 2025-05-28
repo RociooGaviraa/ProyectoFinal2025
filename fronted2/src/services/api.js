@@ -2,7 +2,13 @@ const API_URL = 'http://localhost:8000/api';
 
 export const api = {
     async getEvents() {
-        const response = await fetch(`${API_URL}/events`);
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch(`${API_URL}/events`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
         if (!response.ok) throw new Error('Error fetching events');
         return response.json();
     },
@@ -27,10 +33,7 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'Origin': 'http://localhost:5173'
             },
-            mode: 'cors',
-            credentials: 'include',
             body: JSON.stringify({
                 email: credentials.email,
                 password: credentials.password
@@ -53,48 +56,14 @@ export const api = {
             throw new Error('No se recibió el token en la respuesta');
         }
 
-        // Decodificar el token para verificar su contenido
-        try {
-            const tokenParts = data.token.split('.');
-            const payload = JSON.parse(atob(tokenParts[1]));
-            console.log('Token payload:', payload);
-        } catch (e) {
-            console.error('Error al decodificar el token:', e);
-        }
-
         localStorage.setItem('jwt_token', data.token);
-
-        // Obtener información del usuario
-        const token = localStorage.getItem('jwt_token');
-        console.log('Token almacenado:', token);
-
-        const headers = {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        };
-        console.log('Request headers:', headers);
-
-        const userResponse = await fetch(`${API_URL}/me`, {
-            method: 'GET',
-            headers: headers
-        });
-
-        console.log('User response status:', userResponse.status);
-        console.log('User response headers:', Object.fromEntries(userResponse.headers.entries()));
-
-        if (!userResponse.ok) {
-            const errorData = await userResponse.json();
-            console.error('Error response:', errorData);
-            throw new Error(errorData.message || 'Error al obtener la información del usuario');
+        if (data.user) {
+            localStorage.setItem('user', JSON.stringify(data.user));
         }
-
-        const userData = await userResponse.json();
-        console.log('User data:', userData);
 
         return {
             token: data.token,
-            user: userData.user
+            user: data.user
         };
     },
 
@@ -120,5 +89,34 @@ export const api = {
         }
 
         return response.json();
-    }
+    },
+
+    createEvent: async (eventData) => {
+        const token = localStorage.getItem('jwt_token');
+        console.log('Datos enviados al backend:', eventData);
+        const response = await fetch('http://localhost:8000/api/events', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(eventData)
+        });
+        if (!response.ok) throw new Error('No se pudo crear el evento');
+        return response.json();
+    },
+
+    getEventById: async (id) => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch(`http://localhost:8000/api/events/${id}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (!response.ok) throw new Error('No se pudo obtener el evento');
+        return response.json();
+    },
+
 };

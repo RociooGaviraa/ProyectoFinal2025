@@ -180,4 +180,65 @@ class EventApiController extends AbstractController
             'message' => 'Invalid credentials'
         ], 401);
     }
+
+    #[Route('/events', name: 'event_create', methods: ['POST'])]
+    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        // Validación básica
+        if (
+            !isset($data['title'], $data['description'], $data['date'], $data['location'], $data['type'], $data['maxParticipants'])
+            || empty($data['title']) || empty($data['description']) || empty($data['date']) || empty($data['location']) || empty($data['type'])
+        ) {
+            return new JsonResponse(['error' => 'Missing or invalid fields'], 400);
+        }
+
+        $event = new Event();
+        $event->setTitle($data['title']);
+        $event->setDescription($data['description']);
+        $event->setDate(new \DateTime($data['date']));
+        $event->setLocation($data['location']);
+        $event->setCategory($data['type']);
+        $event->setCapacity((int)$data['maxParticipants']);
+        // Si quieres, puedes añadir una imagen por defecto:
+        $event->setImage($data['image'] ?? null);
+
+        $entityManager->persist($event);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'message' => 'Event created successfully',
+            'event' => [
+                'id' => $event->getId(),
+                'title' => $event->getTitle(),
+                'description' => $event->getDescription(),
+                'date' => $event->getDate()->format('Y-m-d H:i:s'),
+                'location' => $event->getLocation(),
+                'category' => $event->getCategory(),
+                'capacity' => $event->getCapacity(),
+                'image' => $event->getImage()
+            ]
+        ], 201);
+    }
+
+    #[Route('/events/{id}', name: 'event_detail', methods: ['GET'])]
+    public function getEventById(int $id, EventRepository $eventRepository): JsonResponse
+    {
+        $event = $eventRepository->find($id);
+        if (!$event) {
+            return new JsonResponse(['error' => 'Event not found'], 404);
+        }
+        $data = [
+            'id' => $event->getId(),
+            'title' => $event->getTitle(),
+            'description' => $event->getDescription(),
+            'date' => $event->getDate()->format('Y-m-d H:i:s'),
+            'location' => $event->getLocation(),
+            'category' => $event->getCategory(),
+            'capacity' => $event->getCapacity(),
+            'image' => $event->getImage()
+        ];
+        return new JsonResponse($data);
+    }
 }

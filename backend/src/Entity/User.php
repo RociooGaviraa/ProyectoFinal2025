@@ -33,7 +33,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeInterface $birthDate = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $profilePicture = null;
+    private ?string $profile = null;
 
     #[ORM\Column]
     private array $roles = [];
@@ -171,14 +171,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getProfilePicture(): ?string
+    public function getProfile(): ?string
     {
-        return $this->profilePicture;
+        return $this->profile;
     }
 
-    public function setProfilePicture(?string $profilePicture): static
+    public function setProfile(?string $profile): static
     {
-        $this->profilePicture = $profilePicture;
+        $this->profile = $profile;
         return $this;
     }
 

@@ -18,16 +18,10 @@ const Login = () => {
         setError('');
 
         try {
-            console.log('Login attempt with:', formData);
-            await login({
-                email: formData.email.trim(),
-                password: formData.password
-            });
-            console.log('Login successful');
-            navigate('/dashboard');
-        } catch (error) {
-            console.error('Login error:', error);
-            setError(error.message || 'Error en el inicio de sesión');
+            await login(formData);
+            navigate('/');
+        } catch (err) {
+            setError(err.message || 'Error al iniciar sesión');
         } finally {
             setLoading(false);
         }

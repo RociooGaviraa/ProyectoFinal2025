@@ -74,7 +74,8 @@ class SecurityApiController extends AbstractController
                     'username' => $user->getUsername(),
                     'name' => $user->getName(),
                     'surname' => $user->getSurname(),
-                    'roles' => $user->getRoles()
+                    'roles' => $user->getRoles(),
+                    'profile' => $user->getProfile(),
                 ]
             ]);
 

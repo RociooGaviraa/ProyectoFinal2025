@@ -6,6 +6,7 @@ const CreateEvent = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -19,8 +20,21 @@ const CreateEvent = () => {
         e.preventDefault();
         try {
             setLoading(true);
-            await api.createEvent(formData);
-            navigate('/events');
+            setError('');
+            setSuccess('');
+            const eventData = {
+                title: formData.title,
+                description: formData.description,
+                date: formData.date,
+                location: formData.location,
+                category: formData.type,
+                capacity: formData.maxParticipants,
+            };
+            await api.createEvent(eventData);
+            setSuccess('¡Evento creado correctamente!');
+            setTimeout(() => {
+                navigate('/events');
+            }, 1500); // Redirige después de 1.5 segundos
         } catch (err) {
             setError(err.message);
         } finally {
@@ -36,6 +50,12 @@ const CreateEvent = () => {
                 {error && (
                     <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
                         {error}
+                    </div>
+                )}
+
+                {success && (
+                    <div className="bg-green-50 text-green-700 p-4 rounded-md mb-6">
+                        {success}
                     </div>
                 )}
 
@@ -105,8 +125,8 @@ const CreateEvent = () => {
                             type="number"
                             required
                             min="1"
-                            value={formData.maxParticipants}
-                            onChange={(e) => setFormData({...formData, maxParticipants: parseInt(e.target.value)})}
+                            value={formData.maxParticipants || ''}
+                            onChange={(e) => setFormData({...formData, maxParticipants: e.target.value ? parseInt(e.target.value, 10) : ''})}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                         />
                     </div>

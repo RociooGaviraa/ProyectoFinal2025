@@ -1,13 +1,16 @@
 import React from 'react';
 import { createBrowserRouter } from "react-router-dom";
-import RootLayout from "./layouts/RootLayout";
-import Home from "./pages/Home";
-import Events from "./pages/Events";
+import RootLayout from "../layouts/RootLayout";
+import Home from "../pages/Home";
+import EventList from "../pages/EventList";
+import CreateEvent from "../pages/CreateEvent";
+import ErrorPage from '../pages/ErrorPage';
 
 export const router = createBrowserRouter([
     {
         path: "/",
         element: <RootLayout />,
+        errorElement: <ErrorPage />,
         children: [
             {
                 index: true,
@@ -15,12 +18,12 @@ export const router = createBrowserRouter([
             },
             {
                 path: "events",
-                element: <Events />,
+                element: <EventList />,
             },
             {
-                path: "events/category/:category",
-                element: <Events />,
-            }
+                path: "events/create",
+                element: <CreateEvent />,
+            },
         ],
     },
 ]);
