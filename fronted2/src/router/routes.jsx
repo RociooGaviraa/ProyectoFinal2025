@@ -5,6 +5,7 @@ import Home from "../pages/Home";
 import EventList from "../pages/EventList";
 import CreateEvent from "../pages/CreateEvent";
 import ErrorPage from '../pages/ErrorPage';
+import EventDetails from '../pages/EventDetails';
 
 export const router = createBrowserRouter([
     {
@@ -23,6 +24,10 @@ export const router = createBrowserRouter([
             {
                 path: "events/create",
                 element: <CreateEvent />,
+            },
+            {
+                path: "events/:id",
+                element: <EventDetails />,
             },
         ],
     },
