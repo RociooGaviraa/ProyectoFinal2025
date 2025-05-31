@@ -10,72 +10,48 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
-#[Route('/user')]
+#[Route('/api')]
 final class UserController extends AbstractController
 {
-    #[Route(name: 'app_user_index', methods: ['GET'])]
-    public function index(UserRepository $userRepository): Response
+    #[Route('/users', name: 'admin_users_list', methods: ['GET'])]
+    public function listUsers(EntityManagerInterface $em): JsonResponse
     {
-        return $this->render('user/index.html.twig', [
-            'users' => $userRepository->findAll(),
-        ]);
-    }
-
-    #[Route('/new', name: 'app_user_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $user = new User();
-        $form = $this->createForm(UserType::class, $user);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($user);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_user_index', [], Response::HTTP_SEE_OTHER);
+        $users = $em->getRepository(\App\Entity\User::class)->findAll();
+        $data = [];
+        foreach ($users as $user) {
+            $data[] = [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'username' => $user->getUsername(),
+                'roles' => $user->getRoles(),
+            ];
         }
-
-        return $this->render('user/new.html.twig', [
-            'user' => $user,
-            'form' => $form,
-        ]);
+        return new JsonResponse($data);
     }
 
-    #[Route('/{id}', name: 'app_user_show', methods: ['GET'])]
-    public function show(User $user): Response
-    {
-        return $this->render('user/show.html.twig', [
-            'user' => $user,
-        ]);
-    }
-
-    #[Route('/{id}/edit', name: 'app_user_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, User $user, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(UserType::class, $user);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_user_index', [], Response::HTTP_SEE_OTHER);
+    #[Route('/users/{id}/events', name: 'admin_user_events', methods: ['GET'])]
+    public function userEvents(
+        int $id,
+        EntityManagerInterface $em,
+        \App\Repository\EventParticipantRepository $eventParticipantRepository
+    ): JsonResponse {
+        $user = $em->getRepository(\App\Entity\User::class)->find($id);
+        if (!$user) {
+            return new JsonResponse(['error' => 'Usuario no encontrado'], 404);
         }
-
-        return $this->render('user/edit.html.twig', [
-            'user' => $user,
-            'form' => $form,
-        ]);
-    }
-
-    #[Route('/{id}', name: 'app_user_delete', methods: ['POST'])]
-    public function delete(Request $request, User $user, EntityManagerInterface $entityManager): Response
-    {
-        if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->getPayload()->getString('_token'))) {
-            $entityManager->remove($user);
-            $entityManager->flush();
+        $participations = $eventParticipantRepository->findBy(['user' => $user]);
+        $events = [];
+        foreach ($participations as $participation) {
+            $event = $participation->getEvent();
+            $events[] = [
+                'id' => $event->getId(),
+                'title' => $event->getTitle(),
+                'date' => $event->getDate()->format('Y-m-d H:i:s'),
+                'location' => $event->getLocation(),
+            ];
         }
-
-        return $this->redirectToRoute('app_user_index', [], Response::HTTP_SEE_OTHER);
+        return new JsonResponse($events);
     }
 }

@@ -77,25 +77,7 @@ const Home = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-100">
-            {/* Header fijo */}
-            <header className="fixed top-0 left-0 w-full z-50 bg-white shadow-md">
-                <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-                    <Link to="/" className="flex items-center gap-2">
-                        <span className="inline-block bg-blue-900 text-white rounded-full p-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c1.104 0 2-.896 2-2s-.896-2-2-2-2 .896-2 2 .896 2 2 2zm0 0c-2.21 0-4 1.79-4 4v1h8v-1c0-2.21-1.79-4-4-4z" /></svg>
-                        </span>
-                        <span className="font-bold text-xl text-blue-900">EventHorizon</span>
-                    </Link>
-                    <nav className="flex gap-8 items-center">
-                        <Link to="/events" className="text-gray-800 hover:text-blue-900 font-medium">Eventos</Link>
-                        <Link to="/map" className="text-gray-800 hover:text-blue-900 font-medium">Mapa</Link>
-                    </nav>
-                    <div className="flex gap-2 items-center">
-                        <Link to="/login" className="text-gray-800 hover:text-blue-900 font-medium">Iniciar Sesión</Link>
-                        <Link to="/register" className="bg-blue-900 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-800 transition">Registrarse</Link>
-                    </div>
-                </div>
-            </header>
+            
 
             {/* Espacio para header fijo */}
             <div className="h-20" />

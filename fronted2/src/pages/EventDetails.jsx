@@ -182,27 +182,39 @@ const EventDetails = () => {
                 <div className="space-y-8">
                     {user ? (
                         isJoined ? (
-                            <div className="bg-white rounded-xl shadow p-8 flex flex-col items-center">
-                                <span className="text-green-600 font-semibold mb-2">¡Ya estás inscrito en este evento!</span>
+                            <div style={{ textAlign: 'center', border: '1px solid #e0e0e0', borderRadius: 8, padding: 16 }}>
+                                <div style={{ color: 'green', fontWeight: 'bold', marginBottom: 12 }}>
+                                    ¡Ya estás inscrito en este evento!
+                                </div>
                                 <button
-                                    className="border border-green-600 text-green-600 px-6 py-2 rounded-md font-semibold hover:bg-green-50 transition w-full text-center"
                                     onClick={handleLeave}
-                                    disabled={actionLoading}
+                                    style={{
+                                        background: '#f5f5f5',
+                                        border: 'none',
+                                        borderRadius: 6,
+                                        padding: '10px 24px',
+                                        fontWeight: 'bold',
+                                        cursor: 'pointer'
+                                    }}
                                 >
                                     Cancelar asistencia
                                 </button>
                             </div>
                         ) : (
-                            <div className="bg-white rounded-xl shadow p-8 flex flex-col items-center">
-                                <span className="mb-2">Quedan {plazasDisponibles} plazas disponibles</span>
-                                <button
-                                    className="bg-blue-800 text-white px-6 py-2 rounded-md font-semibold hover:bg-blue-900 transition w-full text-center"
-                                    onClick={handleJoin}
-                                    disabled={actionLoading || plazasDisponibles <= 0}
-                                >
-                                    Unirse al evento
-                                </button>
-                            </div>
+                            <button
+                                onClick={handleJoin}
+                                style={{
+                                    background: '#1976d2',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: 6,
+                                    padding: '10px 24px',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Unirse al evento
+                            </button>
                         )
                     ) : (
                         <div className="bg-white rounded-xl shadow p-8 flex flex-col items-center">

@@ -43,9 +43,13 @@ class Event
      */
     private $attendees;
 
+    #[ORM\OneToMany(mappedBy: 'event', targetEntity: EventParticipant::class)]
+    private Collection $eventParticipants;
+
     public function __construct()
     {
         $this->attendees = new ArrayCollection();
+        $this->eventParticipants = new ArrayCollection();
     }
 
     public function getId(): ?int

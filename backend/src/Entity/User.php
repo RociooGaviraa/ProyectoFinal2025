@@ -47,10 +47,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToMany(targetEntity: Event::class, mappedBy: 'participants')]
     private Collection $participatingEvents;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: EventParticipant::class)]
+    private Collection $eventParticipations;
+
     public function __construct()
     {
         $this->createdEvents = new ArrayCollection();
         $this->participatingEvents = new ArrayCollection();
+        $this->eventParticipations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -217,5 +221,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    // Remove the old getEvents, addEvent, and removeEvent methods
+    /**
+     * @return Collection<int, EventParticipant>
+     */
+    public function getEventParticipations(): Collection
+    {
+        return $this->eventParticipations;
+    }
 }

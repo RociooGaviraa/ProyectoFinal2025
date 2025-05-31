@@ -125,29 +125,61 @@ export const api = {
         return response.json();
     },
 
-    joinEvent: async (id) => {
+    joinEvent: async (eventId) => {
         const token = localStorage.getItem('jwt_token');
-        const response = await fetch(`http://localhost:8000/api/events/${id}/join`, {
+        const response = await fetch('http://localhost:8000/api/event-participants/join', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
-            }
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ event_id: eventId })
         });
-        if (!response.ok) throw new Error('No se pudo inscribir al evento');
+        if (!response.ok) throw new Error('No se pudo inscribir');
         return response.json();
     },
 
-    leaveEvent: async (id) => {
+    leaveEvent: async (eventId) => {
         const token = localStorage.getItem('jwt_token');
-        const response = await fetch(`http://localhost:8000/api/events/${id}/leave`, {
+        const response = await fetch('http://localhost:8000/api/event-participants/leave', {
             method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ event_id: eventId })
+        });
+        if (!response.ok) throw new Error('No se pudo cancelar la inscripción');
+        return response.json();
+    },
+
+    getMyEvents: async () => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch('http://localhost:8000/api/events/mine', {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
             }
         });
-        if (!response.ok) throw new Error('No se pudo cancelar la inscripción');
+        if (!response.ok) throw new Error('No se pudieron obtener tus eventos');
+        return response.json();
+    },
+
+    getAllUsers: async () => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch('http://localhost:8000/api/users', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('No se pudieron obtener los usuarios');
+        return response.json();
+    },
+
+    getUserEvents: async (userId) => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch(`http://localhost:8000/api/users/${userId}/events`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('No se pudieron obtener los eventos del usuario');
         return response.json();
     },
 

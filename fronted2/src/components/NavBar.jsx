@@ -28,6 +28,9 @@ const Navbar = () => {
         return (parts[0][0] + parts[1][0]).toUpperCase();
     };
 
+    // Comprueba si el usuario es admin
+    const isAdmin = user && user.roles && user.roles.includes('ROLE_ADMIN');
+
     return (
         <nav className="bg-white shadow-sm border-b border-gray-200">
             <div className="max-w-7xl mx-auto px-6">
@@ -73,7 +76,7 @@ const Navbar = () => {
                                             Perfil
                                         </Link>
                                         <Link
-                                            to="/dashboard"
+                                            to="/mis-eventos"
                                             className="block px-4 py-2 text-gray-800 hover:bg-gray-100 transition"
                                             onClick={() => setMenuOpen(false)}
                                         >
@@ -94,6 +97,11 @@ const Navbar = () => {
                                 <Link to="/login" className="px-4 py-2 rounded-md font-semibold text-base text-white bg-blue-900 hover:bg-blue-800 transition">Iniciar Sesión</Link>
                                 <Link to="/register" className="px-4 py-2 rounded-md font-semibold text-base text-blue-900 border border-blue-900 hover:bg-blue-900 hover:text-white transition">Registrarse</Link>
                             </>
+                        )}
+                        {isAdmin && (
+                            <Link to="/admin-panel" className="btn-admin">
+                                Ver panel de administración
+                            </Link>
                         )}
                     </div>
                 </div>

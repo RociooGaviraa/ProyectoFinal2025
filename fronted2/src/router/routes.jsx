@@ -9,6 +9,11 @@ import EventDetails from '../pages/EventDetails';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import UserProfile from '../pages/UserProfile';
+import MyEvents from '../pages/MyEvents';
+import AdminPanel from '../pages/AdminPanel';
+import UserEventsAdmin from '../pages/UserEventsAdmin';
+import ProtectedRoute from '../components/ProtectedRoute';
+
 
 export const router = createBrowserRouter([
     {
@@ -26,7 +31,11 @@ export const router = createBrowserRouter([
             },
             {
                 path: "events/create",
-                element: <CreateEvent />,
+                element: (
+                    <ProtectedRoute>
+                        <CreateEvent />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: "events/:id",
@@ -42,7 +51,35 @@ export const router = createBrowserRouter([
             },
             {
                 path: "profile",
-                element: <UserProfile />,
+                element: (
+                    <ProtectedRoute>
+                        <UserProfile />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "mis-eventos",
+                element: (
+                    <ProtectedRoute>
+                        <MyEvents />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "admin-panel",
+                element: (
+                    <ProtectedRoute adminOnly={true}>
+                        <AdminPanel />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "admin/usuarios/:id/eventos",
+                element: (
+                    <ProtectedRoute adminOnly={true}>
+                        <UserEventsAdmin />
+                    </ProtectedRoute>
+                ),
             },
         ],
     },

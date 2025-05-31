@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use App\Repository\EventParticipantRepository;
 
 #[Route('/api', name: 'api_')]
 class EventApiController extends AbstractController
@@ -223,18 +224,55 @@ class EventApiController extends AbstractController
         ], 201);
     }
 
+    #[Route('/events/mine', name: 'my_events', methods: ['GET'])]
+    public function myEvents(
+        EventParticipantRepository $eventParticipantRepository,
+        #[CurrentUser] ?\App\Entity\User $user = null
+    ): JsonResponse {
+        if (!$user) {
+            return new JsonResponse(['error' => 'No autenticado'], 401);
+        }
+
+        $participations = $eventParticipantRepository->findBy(['user' => $user]);
+        $events = [];
+        foreach ($participations as $participation) {
+            $event = $participation->getEvent();
+            $events[] = [
+                'id' => $event->getId(),
+                'title' => $event->getTitle(),
+                'description' => $event->getDescription(),
+                'date' => $event->getDate()->format('Y-m-d H:i:s'),
+                'location' => $event->getLocation(),
+                'category' => $event->getCategory(),
+                'capacity' => $event->getCapacity(),
+                'image' => $event->getImage()
+            ];
+        }
+
+        return new JsonResponse($events);
+    }
+
     #[Route('/events/{id}', name: 'event_detail', methods: ['GET'])]
-    public function getEventById(int $id, EventRepository $eventRepository, #[CurrentUser] ?\App\Entity\User $user = null): JsonResponse
-    {
+    public function getEventById(
+        int $id,
+        EventRepository $eventRepository,
+        \App\Repository\EventParticipantRepository $eventParticipantRepository,
+        #[CurrentUser] ?\App\Entity\User $user = null
+    ): JsonResponse {
         $event = $eventRepository->find($id);
         if (!$event) {
             return new JsonResponse(['error' => 'Event not found'], 404);
         }
-        $attendees = $event->getAttendees();
+
+        // Contar asistentes reales en la tabla intermedia
+        $attendeesCount = $eventParticipantRepository->countByEvent($event);
+
+        // Comprobar si el usuario está inscrito
         $isJoined = false;
         if ($user) {
-            $isJoined = $attendees->contains($user);
+            $isJoined = $eventParticipantRepository->isUserJoinedToEvent($user, $event);
         }
+
         $data = [
             'id' => $event->getId(),
             'title' => $event->getTitle(),
@@ -244,7 +282,7 @@ class EventApiController extends AbstractController
             'category' => $event->getCategory(),
             'capacity' => $event->getCapacity(),
             'image' => $event->getImage(),
-            'attendeesCount' => $attendees->count(),
+            'attendeesCount' => $attendeesCount,
             'isJoined' => $isJoined
         ];
         return new JsonResponse($data);
