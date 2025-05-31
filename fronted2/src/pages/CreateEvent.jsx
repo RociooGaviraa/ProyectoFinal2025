@@ -13,7 +13,10 @@ const CreateEvent = () => {
         date: '',
         location: '',
         type: 'conference',
-        maxParticipants: 50
+        maxParticipants: 50,
+        state: '',
+        subcategory: false,
+        price: ''
     });
 
     const handleSubmit = async (e) => {
@@ -29,6 +32,9 @@ const CreateEvent = () => {
                 location: formData.location,
                 category: formData.type,
                 capacity: formData.maxParticipants,
+                state: formData.state,
+                subcategory: formData.subcategory,
+                price: formData.price
             };
             await api.createEvent(eventData);
             setSuccess('¡Evento creado correctamente!');
@@ -127,6 +133,38 @@ const CreateEvent = () => {
                             min="1"
                             value={formData.maxParticipants || ''}
                             onChange={(e) => setFormData({...formData, maxParticipants: e.target.value ? parseInt(e.target.value, 10) : ''})}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Estado</label>
+                        <input
+                            type="text"
+                            value={formData.state}
+                            onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                    </div>
+
+                    <div className="flex items-center">
+                        <input
+                            type="checkbox"
+                            checked={formData.subcategory}
+                            onChange={(e) => setFormData({ ...formData, subcategory: e.target.checked })}
+                            className="mr-2"
+                            id="subcategory"
+                        />
+                        <label htmlFor="subcategory" className="text-sm font-medium text-gray-700">Subcategoría</label>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Precio</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={formData.price}
+                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                         />
                     </div>

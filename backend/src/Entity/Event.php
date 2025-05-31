@@ -37,6 +37,15 @@ class Event
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $state = null;
+
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $subcategory = null;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    private ?string $price = null;
+
     /**
      * @ORM\ManyToMany(targetEntity=User::class)
      * @ORM\JoinTable(name="event_attendees")
@@ -131,6 +140,39 @@ class Event
     public function setImage(?string $image): static
     {
         $this->image = $image;
+        return $this;
+    }
+
+    public function getState(): ?string
+    {
+        return $this->state;
+    }
+
+    public function setState(?string $state): self
+    {
+        $this->state = $state;
+        return $this;
+    }
+
+    public function getSubcategory(): ?bool
+    {
+        return $this->subcategory;
+    }
+
+    public function setSubcategory(?bool $subcategory): self
+    {
+        $this->subcategory = $subcategory;
+        return $this;
+    }
+
+    public function getPrice(): ?string
+    {
+        return $this->price;
+    }
+
+    public function setPrice(?string $price): self
+    {
+        $this->price = $price;
         return $this;
     }
 
