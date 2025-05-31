@@ -1,27 +1,67 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'sonner';
 
 const EventDetails = () => {
     const { id } = useParams();
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const { user } = useAuth();
+    const [isJoined, setIsJoined] = useState(false);
+    const [attendeesCount, setAttendeesCount] = useState(0);
+    const [actionLoading, setActionLoading] = useState(false);
+
+    const fetchEvent = async () => {
+        try {
+            setLoading(true);
+            const data = await api.getEventById(id);
+            setEvent(data);
+            setIsJoined(data.isJoined);
+            setAttendeesCount(data.attendeesCount);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchEvent = async () => {
-            try {
-                setLoading(true);
-                const data = await api.getEventById(id);
-                setEvent(data);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchEvent();
+        // eslint-disable-next-line
     }, [id]);
+
+    const handleJoin = async () => {
+        setActionLoading(true);
+        try {
+            await api.joinEvent(id);
+            setIsJoined(true);
+            setAttendeesCount((prev) => prev + 1);
+            toast.success('¡Te has inscrito correctamente!');
+        } catch (err) {
+            setError(err.message);
+            toast.error(err.message || 'No se pudo inscribir al evento');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleLeave = async () => {
+        setActionLoading(true);
+        try {
+            await api.leaveEvent(id);
+            setIsJoined(false);
+            setAttendeesCount((prev) => prev - 1);
+            toast.success('Has cancelado tu asistencia.');
+        } catch (err) {
+            setError(err.message);
+            toast.error(err.message || 'No se pudo cancelar la inscripción');
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -42,6 +82,8 @@ const EventDetails = () => {
     }
 
     if (!event) return null;
+
+    const plazasDisponibles = event.capacity - attendeesCount;
 
     return (
         <div className="min-h-screen bg-gray-50 pb-12">
@@ -108,7 +150,7 @@ const EventDetails = () => {
                                     <svg className="w-5 h-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                                     Asistentes
                                 </p>
-                                <p className="text-lg font-medium">0 / {event.capacity || '-'}</p>
+                                <p className="text-lg font-medium">{attendeesCount} / {event.capacity || '-'}</p>
                             </div>
                         </div>
                     </div>
@@ -138,10 +180,36 @@ const EventDetails = () => {
 
                 {/* Columna lateral */}
                 <div className="space-y-8">
-                    <div className="bg-white rounded-xl shadow p-8 flex flex-col items-center">
-                        <span className="text-gray-500 mb-2">Inicia sesión para unirte a este evento</span>
-                        <Link to="/login" className="bg-blue-800 text-white px-6 py-2 rounded-md font-semibold hover:bg-blue-900 transition w-full text-center">Iniciar sesión</Link>
-                    </div>
+                    {user ? (
+                        isJoined ? (
+                            <div className="bg-white rounded-xl shadow p-8 flex flex-col items-center">
+                                <span className="text-green-600 font-semibold mb-2">¡Ya estás inscrito en este evento!</span>
+                                <button
+                                    className="border border-green-600 text-green-600 px-6 py-2 rounded-md font-semibold hover:bg-green-50 transition w-full text-center"
+                                    onClick={handleLeave}
+                                    disabled={actionLoading}
+                                >
+                                    Cancelar asistencia
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="bg-white rounded-xl shadow p-8 flex flex-col items-center">
+                                <span className="mb-2">Quedan {plazasDisponibles} plazas disponibles</span>
+                                <button
+                                    className="bg-blue-800 text-white px-6 py-2 rounded-md font-semibold hover:bg-blue-900 transition w-full text-center"
+                                    onClick={handleJoin}
+                                    disabled={actionLoading || plazasDisponibles <= 0}
+                                >
+                                    Unirse al evento
+                                </button>
+                            </div>
+                        )
+                    ) : (
+                        <div className="bg-white rounded-xl shadow p-8 flex flex-col items-center">
+                            <span className="text-gray-500 mb-2">Inicia sesión para unirte a este evento</span>
+                            <Link to="/login" className="bg-blue-800 text-white px-6 py-2 rounded-md font-semibold hover:bg-blue-900 transition w-full text-center">Iniciar sesión</Link>
+                        </div>
+                    )}
                     <div className="bg-white rounded-xl shadow p-8">
                         <h3 className="text-lg font-bold mb-2">Organizador</h3>
                         <div className="flex items-center gap-3">

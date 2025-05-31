@@ -3,11 +3,14 @@ const API_URL = 'http://localhost:8000/api';
 export const api = {
     async getEvents() {
         const token = localStorage.getItem('jwt_token');
+        const headers = {
+            'Accept': 'application/json'
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
         const response = await fetch(`${API_URL}/events`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
-            }
+            headers
         });
         if (!response.ok) throw new Error('Error fetching events');
         return response.json();
@@ -109,13 +112,42 @@ export const api = {
 
     getEventById: async (id) => {
         const token = localStorage.getItem('jwt_token');
+        const headers = {
+            'Accept': 'application/json'
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
         const response = await fetch(`http://localhost:8000/api/events/${id}`, {
+            headers
+        });
+        if (!response.ok) throw new Error('No se pudo obtener el evento');
+        return response.json();
+    },
+
+    joinEvent: async (id) => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch(`http://localhost:8000/api/events/${id}/join`, {
+            method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
             }
         });
-        if (!response.ok) throw new Error('No se pudo obtener el evento');
+        if (!response.ok) throw new Error('No se pudo inscribir al evento');
+        return response.json();
+    },
+
+    leaveEvent: async (id) => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch(`http://localhost:8000/api/events/${id}/leave`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (!response.ok) throw new Error('No se pudo cancelar la inscripción');
         return response.json();
     },
 

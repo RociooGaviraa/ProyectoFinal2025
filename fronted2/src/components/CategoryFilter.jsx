@@ -1,7 +1,6 @@
 import React from 'react';
-import { categories } from '../lib/mockData';
 
-const CategoryFilter = ({ selectedCategory, onCategoryChange }) => {
+const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }) => {
   return (
     <div className="mb-8">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Categorías</h3>
@@ -17,7 +16,7 @@ const CategoryFilter = ({ selectedCategory, onCategoryChange }) => {
           Todas
         </button>
         
-        {categories.map((category) => (
+        {categories && categories.map((category) => (
           <button
             key={category.id}
             onClick={() => onCategoryChange(category.id)}

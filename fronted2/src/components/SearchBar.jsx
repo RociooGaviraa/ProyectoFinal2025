@@ -14,6 +14,13 @@ const SearchBar = ({ onSearch, initialValue = '' }) => {
       navigate(`/events?search=${encodeURIComponent(searchTerm)}`);
     }
   };
+
+  const handleChange = (e) => {
+    setSearchTerm(e.target.value);
+    if (onSearch) {
+      onSearch(e.target.value);
+    }
+  };
   
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-xl">
@@ -26,7 +33,7 @@ const SearchBar = ({ onSearch, initialValue = '' }) => {
         <input
           type="search"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleChange}
           className="w-full p-3 pl-10 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg focus:ring-primary-500 focus:border-primary-500"
           placeholder="Busca eventos, categorías, ubicaciones..."
         />

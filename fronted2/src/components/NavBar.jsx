@@ -1,9 +1,32 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
+    const [menuOpen, setMenuOpen] = useState(false);
+    const menuRef = useRef(null);
+
+    // Cerrar el menú si se hace clic fuera
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setMenuOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    // Obtener iniciales del usuario
+    const getInitials = (name) => {
+        if (!name) return '';
+        const parts = name.trim().split(' ');
+        if (parts.length === 1) return parts[0][0].toUpperCase();
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+    };
 
     return (
         <nav className="bg-white shadow-sm border-b border-gray-200">
@@ -23,22 +46,49 @@ const Navbar = () => {
                     <div className="hidden md:flex md:gap-8 md:ml-12">
                         <Link to="/events" className="text-base font-medium text-gray-700 hover:text-blue-900 transition">Eventos</Link>
                         <Link to="/map" className="text-base font-medium text-gray-700 hover:text-blue-900 transition">Mapa</Link>
+                        <Link to="/events/create" className="text-base font-medium text-gray-700 hover:text-blue-900 transition">Crear Evento</Link>
                     </div>
                     {/* Botones de la derecha */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 relative">
                         {user ? (
-                            <>
-                                <Link to="/dashboard" className="text-base font-medium text-gray-700 hover:text-blue-900 transition">Panel</Link>
-                                <Link to="/profile" className="flex items-center gap-2 text-base font-medium text-gray-700 hover:text-blue-900 transition">
+                            <div className="relative" ref={menuRef}>
+                                <button
+                                    className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-lg font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    onClick={() => setMenuOpen((open) => !open)}
+                                >
                                     {user.profile ? (
-                                        <img src={user.profile} alt="Foto de perfil" className="w-8 h-8 rounded-full object-cover" />
+                                        <img src={user.profile} alt="Foto de perfil" className="w-12 h-12 rounded-full object-cover" />
                                     ) : (
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A9 9 0 1112 21a9 9 0 01-6.879-3.196z" /></svg>
+                                        getInitials(user.username || user.name)
                                     )}
-                                    <span>{user.username}</span>
-                                </Link>
-                                <button onClick={logout} className="text-base font-medium text-gray-700 hover:text-blue-900 transition">Cerrar sesión</button>
-                            </>
+                                </button>
+                                {menuOpen && (
+                                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg z-50 border border-gray-100">
+                                        <div className="px-4 py-3 border-b font-bold text-gray-900">Mi Cuenta</div>
+                                        <Link
+                                            to="/profile"
+                                            className="block px-4 py-2 text-gray-800 hover:bg-gray-100 transition"
+                                            onClick={() => setMenuOpen(false)}
+                                        >
+                                            Perfil
+                                        </Link>
+                                        <Link
+                                            to="/dashboard"
+                                            className="block px-4 py-2 text-gray-800 hover:bg-gray-100 transition"
+                                            onClick={() => setMenuOpen(false)}
+                                        >
+                                            Mis Eventos
+                                        </Link>
+                                        <div className="border-t my-1" />
+                                        <button
+                                            onClick={() => { setMenuOpen(false); logout(); }}
+                                            className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition"
+                                        >
+                                            Cerrar Sesión
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         ) : (
                             <>
                                 <Link to="/login" className="px-4 py-2 rounded-md font-semibold text-base text-white bg-blue-900 hover:bg-blue-800 transition">Iniciar Sesión</Link>

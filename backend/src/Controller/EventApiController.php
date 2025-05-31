@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 #[Route('/api', name: 'api_')]
 class EventApiController extends AbstractController
@@ -223,11 +224,16 @@ class EventApiController extends AbstractController
     }
 
     #[Route('/events/{id}', name: 'event_detail', methods: ['GET'])]
-    public function getEventById(int $id, EventRepository $eventRepository): JsonResponse
+    public function getEventById(int $id, EventRepository $eventRepository, #[CurrentUser] ?\App\Entity\User $user = null): JsonResponse
     {
         $event = $eventRepository->find($id);
         if (!$event) {
             return new JsonResponse(['error' => 'Event not found'], 404);
+        }
+        $attendees = $event->getAttendees();
+        $isJoined = false;
+        if ($user) {
+            $isJoined = $attendees->contains($user);
         }
         $data = [
             'id' => $event->getId(),
@@ -237,8 +243,46 @@ class EventApiController extends AbstractController
             'location' => $event->getLocation(),
             'category' => $event->getCategory(),
             'capacity' => $event->getCapacity(),
-            'image' => $event->getImage()
+            'image' => $event->getImage(),
+            'attendeesCount' => $attendees->count(),
+            'isJoined' => $isJoined
         ];
         return new JsonResponse($data);
+    }
+
+    #[Route('/events/{id}/join', name: 'event_join', methods: ['POST'])]
+    public function joinEvent(int $id, EventRepository $eventRepository, EntityManagerInterface $em, #[CurrentUser] ?User $user): JsonResponse
+    {
+        if (!$user) {
+            return new JsonResponse(['error' => 'No autenticado'], 401);
+        }
+        $event = $eventRepository->find($id);
+        if (!$event) {
+            return new JsonResponse(['error' => 'Evento no encontrado'], 404);
+        }
+        if ($event->getAttendees()->contains($user)) {
+            return new JsonResponse(['message' => 'Ya inscrito']);
+        }
+        $event->addAttendee($user);
+        $em->flush();
+        return new JsonResponse(['message' => 'Inscripción exitosa']);
+    }
+
+    #[Route('/events/{id}/leave', name: 'event_leave', methods: ['POST'])]
+    public function leaveEvent(int $id, EventRepository $eventRepository, EntityManagerInterface $em, #[CurrentUser] ?User $user): JsonResponse
+    {
+        if (!$user) {
+            return new JsonResponse(['error' => 'No autenticado'], 401);
+        }
+        $event = $eventRepository->find($id);
+        if (!$event) {
+            return new JsonResponse(['error' => 'Evento no encontrado'], 404);
+        }
+        if (!$event->getAttendees()->contains($user)) {
+            return new JsonResponse(['message' => 'No estabas inscrito']);
+        }
+        $event->removeAttendee($user);
+        $em->flush();
+        return new JsonResponse(['message' => 'Inscripción cancelada']);
     }
 }

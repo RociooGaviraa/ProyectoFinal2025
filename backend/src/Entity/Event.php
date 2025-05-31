@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Repository\EventRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
 class Event
@@ -34,6 +36,17 @@ class Event
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=User::class)
+     * @ORM\JoinTable(name="event_attendees")
+     */
+    private $attendees;
+
+    public function __construct()
+    {
+        $this->attendees = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -114,6 +127,31 @@ class Event
     public function setImage(?string $image): static
     {
         $this->image = $image;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getAttendees(): Collection
+    {
+        if ($this->attendees === null) {
+            $this->attendees = new ArrayCollection();
+        }
+        return $this->attendees;
+    }
+
+    public function addAttendee(User $user): self
+    {
+        if (!$this->attendees->contains($user)) {
+            $this->attendees[] = $user;
+        }
+        return $this;
+    }
+
+    public function removeAttendee(User $user): self
+    {
+        $this->attendees->removeElement($user);
         return $this;
     }
 }
