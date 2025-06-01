@@ -82,6 +82,16 @@ const Navbar = () => {
                                         >
                                             Mis Eventos
                                         </Link>
+                                        {/* Botón de admin solo para admins */}
+                                        {isAdmin && (
+                                            <Link
+                                                to="/admin-panel"
+                                                className="block px-4 py-2 text-gray-800 hover:bg-gray-100 transition"
+                                                onClick={() => setMenuOpen(false)}
+                                            >
+                                                Ver panel de Admin
+                                            </Link>
+                                        )}
                                         <div className="border-t my-1" />
                                         <button
                                             onClick={() => { setMenuOpen(false); logout(); }}
@@ -97,11 +107,6 @@ const Navbar = () => {
                                 <Link to="/login" className="px-4 py-2 rounded-md font-semibold text-base text-white bg-blue-900 hover:bg-blue-800 transition">Iniciar Sesión</Link>
                                 <Link to="/register" className="px-4 py-2 rounded-md font-semibold text-base text-blue-900 border border-blue-900 hover:bg-blue-900 hover:text-white transition">Registrarse</Link>
                             </>
-                        )}
-                        {isAdmin && (
-                            <Link to="/admin-panel" className="btn-admin">
-                                Ver panel de administración
-                            </Link>
                         )}
                     </div>
                 </div>

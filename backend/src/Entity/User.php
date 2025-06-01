@@ -41,8 +41,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: false)]
     private ?string $password = null;
 
-    #[ORM\OneToMany(mappedBy: 'creator', targetEntity: Event::class)]
-    private Collection $createdEvents;
+    #[ORM\OneToMany(mappedBy: 'organizer', targetEntity: Event::class)]
+    private Collection $organizedEvents;
 
     #[ORM\ManyToMany(targetEntity: Event::class, mappedBy: 'participants')]
     private Collection $participatingEvents;
@@ -52,7 +52,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
-        $this->createdEvents = new ArrayCollection();
+        $this->organizedEvents = new ArrayCollection();
         $this->participatingEvents = new ArrayCollection();
         $this->eventParticipations = new ArrayCollection();
     }
@@ -194,9 +194,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, Event>
      */
-    public function getCreatedEvents(): Collection
+    public function getOrganizedEvents(): Collection
     {
-        return $this->createdEvents;
+        return $this->organizedEvents;
     }
 
     /**

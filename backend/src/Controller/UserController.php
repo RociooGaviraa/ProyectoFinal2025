@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Entity\Event;
 
 #[Route('/api')]
 final class UserController extends AbstractController
@@ -45,6 +46,7 @@ final class UserController extends AbstractController
         $events = [];
         foreach ($participations as $participation) {
             $event = $participation->getEvent();
+            if (!$event) continue;
             $events[] = [
                 'id' => $event->getId(),
                 'title' => $event->getTitle(),
@@ -53,5 +55,47 @@ final class UserController extends AbstractController
             ];
         }
         return new JsonResponse($events);
+    }
+
+    #[Route('/users/{id}', name: 'get_user_by_id', methods: ['GET'])]
+    public function getUserById(int $id, EntityManagerInterface $em): JsonResponse
+    {
+        $user = $em->getRepository(User::class)->find($id);
+        if (!$user) {
+            return new JsonResponse(['error' => 'Usuario no encontrado'], 404);
+        }
+        return new JsonResponse([
+            'id' => $user->getId(),
+            'email' => $user->getEmail(),
+            'username' => $user->getUsername(),
+            'name' => $user->getName(),
+            'surname' => $user->getSurname(),
+        ]);
+    }
+
+    #[Route('/users/{id}/events/created', name: 'admin_user_created_events', methods: ['GET'])]
+    public function userCreatedEvents(
+        int $id,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $user = $em->getRepository(User::class)->find($id);
+        if (!$user) {
+            return new JsonResponse(['error' => 'Usuario no encontrado'], 404);
+        }
+        $events = $em->getRepository(Event::class)->findBy(['organizer' => $user]);
+        $data = [];
+        foreach ($events as $event) {
+            $data[] = [
+                'id' => $event->getId(),
+                'title' => $event->getTitle(),
+                'description' => $event->getDescription(),
+                'date' => $event->getDate()->format('Y-m-d H:i:s'),
+                'location' => $event->getLocation(),
+                'category' => $event->getCategory(),
+                'capacity' => $event->getCapacity(),
+                'image' => $event->getImage()
+            ];
+        }
+        return new JsonResponse($data);
     }
 }

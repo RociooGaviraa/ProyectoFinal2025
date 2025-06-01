@@ -29,49 +29,50 @@ class ApiController extends AbstractController
     //     return $this->json($event, 200, [], ['groups' => 'event']);
     // }
 
-    #[Route('/events', name: 'create_event', methods: ['POST'])]
-    public function createEvent(Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
+    // #[Route('/events', name: 'create_event', methods: ['POST'])]
+    // public function createEvent(Request $request, EntityManagerInterface $entityManager, #[CurrentUser] ?\App\Entity\User $user = null): JsonResponse
+    // {
+    //     $data = json_decode($request->getContent(), true);
 
-        // Validar campos obligatorios
-        if (
-            empty($data['title']) ||
-            empty($data['description']) ||
-            empty($data['date']) ||
-            empty($data['location']) ||
-            empty($data['category']) ||
-            empty($data['capacity'])
-        ) {
-            return $this->json(['message' => 'Faltan campos obligatorios'], 400);
-        }
+    //     // Validar campos obligatorios
+    //     if (
+    //         empty($data['title']) ||
+    //         empty($data['description']) ||
+    //         empty($data['date']) ||
+    //         empty($data['location']) ||
+    //         empty($data['category']) ||
+    //         empty($data['capacity'])
+    //     ) {
+    //         return $this->json(['message' => 'Faltan campos obligatorios'], 400);
+    //     }
 
-        $event = new Event();
-        $event->setTitle($data['title']);
-        $event->setDescription($data['description']);
-        $event->setDate(new \DateTime($data['date']));
-        $event->setLocation($data['location']);
-        $event->setCategory($data['category']);
-        $event->setCapacity((int)$data['capacity']);
-        $event->setImage($data['image'] ?? null);
+    //     $event = new Event();
+    //     $event->setTitle($data['title']);
+    //     $event->setDescription($data['description']);
+    //     $event->setDate(new \DateTime($data['date']));
+    //     $event->setLocation($data['location']);
+    //     $event->setCategory($data['category']);
+    //     $event->setCapacity((int)$data['capacity']);
+    //     $event->setImage($data['image'] ?? null);
+    //     $event->setOrganizer($user);
 
-        $entityManager->persist($event);
-        $entityManager->flush();
+    //     $entityManager->persist($event);
+    //     $entityManager->flush();
 
-        return $this->json([
-            'message' => 'Evento creado correctamente',
-            'event' => [
-                'id' => $event->getId(),
-                'title' => $event->getTitle(),
-                'description' => $event->getDescription(),
-                'date' => $event->getDate()->format('Y-m-d H:i:s'),
-                'location' => $event->getLocation(),
-                'category' => $event->getCategory(),
-                'capacity' => $event->getCapacity(),
-                'image' => $event->getImage(),
-            ]
-        ], 201);
-    }
+    //     return $this->json([
+    //         'message' => 'Evento creado correctamente',
+    //         'event' => [
+    //             'id' => $event->getId(),
+    //             'title' => $event->getTitle(),
+    //             'description' => $event->getDescription(),
+    //             'date' => $event->getDate()->format('Y-m-d H:i:s'),
+    //             'location' => $event->getLocation(),
+    //             'category' => $event->getCategory(),
+    //             'capacity' => $event->getCapacity(),
+    //             'image' => $event->getImage(),
+    //         ]
+    //     ], 201);
+    // }
 
     #[Route('/register', name: 'register', methods: ['POST'])]
     public function register(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): JsonResponse

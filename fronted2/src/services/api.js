@@ -96,7 +96,6 @@ export const api = {
 
     createEvent: async (eventData) => {
         const token = localStorage.getItem('jwt_token');
-        console.log('Datos enviados al backend:', eventData);
         const response = await fetch('http://localhost:8000/api/events', {
             method: 'POST',
             headers: {
@@ -180,6 +179,143 @@ export const api = {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!response.ok) throw new Error('No se pudieron obtener los eventos del usuario');
+        return response.json();
+    },
+
+    getUserProfile: async () => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch('http://localhost:8000/api/me', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (!response.ok) throw new Error('No se pudo obtener el perfil');
+        const data = await response.json();
+        return data.user;
+    },
+
+    updateUserProfile: async (profileData) => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch('http://localhost:8000/api/me', {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(profileData)
+        });
+        if (!response.ok) throw new Error('No se pudo actualizar el perfil');
+        return response.json();
+    },
+
+    getMyCreatedEvents: async () => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch('http://localhost:8000/api/events/created', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (!response.ok) throw new Error('No se pudieron obtener tus eventos creados');
+        return response.json();
+    },
+
+    // FAVORITOS
+    getFavorites: async () => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch('http://localhost:8000/api/favorites', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (!response.ok) throw new Error('No se pudieron obtener tus favoritos');
+        return response.json();
+    },
+
+    addFavorite: async (eventId) => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch(`http://localhost:8000/api/favorites/${eventId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (!response.ok) throw new Error('No se pudo añadir a favoritos');
+        return response.json();
+    },
+
+    removeFavorite: async (eventId) => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch(`http://localhost:8000/api/favorites/${eventId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (!response.ok) throw new Error('No se pudo eliminar de favoritos');
+        return response.json();
+    },
+
+    getUserById: async (userId) => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch(`http://localhost:8000/api/users/${userId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('No se pudo obtener el usuario');
+        return response.json();
+    },
+
+    getUserCreatedEvents: async (userId) => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch(`http://localhost:8000/api/users/${userId}/events/created`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('No se pudieron obtener los eventos creados por el usuario');
+        return response.json();
+    },
+
+    cancelUserSubscription: async (userId, eventId) => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch(`http://localhost:8000/api/events/${eventId}/unsubscribe/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (!response.ok) throw new Error('No se pudo cancelar la suscripción');
+        return response.json();
+    },
+
+    adminUnsubscribeUser: async (eventId, userId) => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch(`http://localhost:8000/api/event-participants/api/events/${eventId}/unsubscribe/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        if (!response.ok) throw new Error('No se pudo cancelar la suscripción');
+        return response.json();
+    },
+
+    updateEvent: async (eventId, eventData) => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch(`http://localhost:8000/api/events/${eventId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(eventData),
+        });
+        if (!response.ok) throw new Error('No se pudo actualizar el evento');
         return response.json();
     },
 

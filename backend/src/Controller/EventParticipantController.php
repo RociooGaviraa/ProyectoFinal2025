@@ -106,4 +106,27 @@ class EventParticipantController extends AbstractController
 
         return $this->json(['success' => true]);
     }
+
+    #[Route('/api/events/{eventId}/unsubscribe/{userId}', name: 'admin_event_unsubscribe', methods: ['POST'])]
+    public function adminUnsubscribeUser(
+        int $eventId,
+        int $userId,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $event = $em->getRepository(Event::class)->find($eventId);
+        $user = $em->getRepository(User::class)->find($userId);
+        if (!$event || !$user) {
+            return new JsonResponse(['error' => 'Evento o usuario no encontrado'], 404);
+        }
+        $participation = $em->getRepository(EventParticipant::class)->findOneBy([
+            'user' => $user,
+            'event' => $event,
+        ]);
+        if ($participation) {
+            $em->remove($participation);
+            $em->flush();
+            return new JsonResponse(['success' => true]);
+        }
+        return new JsonResponse(['error' => 'No estaba inscrito'], 400);
+    }
 }

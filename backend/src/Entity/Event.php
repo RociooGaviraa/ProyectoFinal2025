@@ -55,6 +55,10 @@ class Event
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: EventParticipant::class)]
     private Collection $eventParticipants;
 
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', name: 'organizer_id', referencedColumnName: 'id')]
+    private ?User $organizer = null;
+
     public function __construct()
     {
         $this->attendees = new ArrayCollection();
@@ -198,6 +202,17 @@ class Event
     public function removeAttendee(User $user): self
     {
         $this->attendees->removeElement($user);
+        return $this;
+    }
+
+    public function getOrganizer(): ?User
+    {
+        return $this->organizer;
+    }
+
+    public function setOrganizer(?User $organizer): self
+    {
+        $this->organizer = $organizer;
         return $this;
     }
 }

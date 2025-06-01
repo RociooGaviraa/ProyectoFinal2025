@@ -16,12 +16,13 @@ use App\Repository\EventParticipantRepository;
 class EventApiController extends AbstractController
 {
     #[Route('/events', name: 'events_list', methods: ['GET'])]
-    public function list(EventRepository $eventRepository): JsonResponse
+    public function list(EventRepository $eventRepository, \App\Repository\EventParticipantRepository $eventParticipantRepository): JsonResponse
     {
         $events = $eventRepository->findAll();
         $data = [];
 
         foreach ($events as $event) {
+            $attendeesCount = $eventParticipantRepository->countByEvent($event);
             $data[] = [
                 'id' => $event->getId(),
                 'title' => $event->getTitle(),
@@ -30,7 +31,8 @@ class EventApiController extends AbstractController
                 'location' => $event->getLocation(),
                 'category' => $event->getCategory(),
                 'capacity' => $event->getCapacity(),
-                'image' => $event->getImage()
+                'image' => $event->getImage(),
+                'attendees' => $attendeesCount
             ];
         }
 
@@ -152,6 +154,17 @@ class EventApiController extends AbstractController
             $event->setCapacity($eventData['capacity']);
             $event->setImage($eventData['image']);
             
+            $eventDate = $event->getDate();
+            $now = new \DateTime();
+
+            if ($eventDate < $now) {
+                $event->setState('finalizado');
+            } else if ($eventDate->format('Y-m-d') === $now->format('Y-m-d')) {
+                $event->setState('en proceso');
+            } else {
+                $event->setState('abierto');
+            }
+
             $entityManager->persist($event);
         }
 
@@ -184,14 +197,17 @@ class EventApiController extends AbstractController
     }
 
     #[Route('/events', name: 'event_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function create(Request $request, EntityManagerInterface $entityManager, #[CurrentUser] ?\App\Entity\User $user = null): JsonResponse
     {
+        if (!$user) {
+            return new JsonResponse(['error' => 'No autenticado'], 401);
+        }
         $data = json_decode($request->getContent(), true);
 
         // Validación básica
         if (
-            !isset($data['title'], $data['description'], $data['date'], $data['location'], $data['type'], $data['maxParticipants'])
-            || empty($data['title']) || empty($data['description']) || empty($data['date']) || empty($data['location']) || empty($data['type'])
+            !isset($data['title'], $data['description'], $data['date'], $data['location'], $data['category'], $data['capacity'])
+            || empty($data['title']) || empty($data['description']) || empty($data['date']) || empty($data['location']) || empty($data['category'])
         ) {
             return new JsonResponse(['error' => 'Missing or invalid fields'], 400);
         }
@@ -201,10 +217,24 @@ class EventApiController extends AbstractController
         $event->setDescription($data['description']);
         $event->setDate(new \DateTime($data['date']));
         $event->setLocation($data['location']);
-        $event->setCategory($data['type']);
-        $event->setCapacity((int)$data['maxParticipants']);
-        // Si quieres, puedes añadir una imagen por defecto:
+        $event->setCategory($data['category']);
+        $event->setCapacity((int)$data['capacity']);
         $event->setImage($data['image'] ?? null);
+        $event->setOrganizer($user);
+        // Guarda state, subcategory y price si existen
+        if (isset($data['subcategory'])) $event->setSubcategory($data['subcategory']);
+        if (isset($data['price'])) $event->setPrice($data['price']);
+
+        $eventDate = $event->getDate();
+        $now = new \DateTime();
+
+        if ($eventDate < $now) {
+            $event->setState('finalizado');
+        } else if ($eventDate->format('Y-m-d') === $now->format('Y-m-d')) {
+            $event->setState('en proceso');
+        } else {
+            $event->setState('abierto');
+        }
 
         $entityManager->persist($event);
         $entityManager->flush();
@@ -219,7 +249,10 @@ class EventApiController extends AbstractController
                 'location' => $event->getLocation(),
                 'category' => $event->getCategory(),
                 'capacity' => $event->getCapacity(),
-                'image' => $event->getImage()
+                'image' => $event->getImage(),
+                'subcategory' => $event->getSubcategory(),
+                'price' => $event->getPrice(),
+                'organizer' => $user->getId()
             ]
         ], 201);
     }
@@ -237,6 +270,7 @@ class EventApiController extends AbstractController
         $events = [];
         foreach ($participations as $participation) {
             $event = $participation->getEvent();
+            if (!$event) continue;
             $events[] = [
                 'id' => $event->getId(),
                 'title' => $event->getTitle(),
@@ -250,6 +284,34 @@ class EventApiController extends AbstractController
         }
 
         return new JsonResponse($events);
+    }
+
+    #[Route('/events/created', name: 'my_created_events', methods: ['GET'])]
+    public function myCreatedEvents(
+        EventRepository $eventRepository,
+        #[CurrentUser] ?\App\Entity\User $user = null
+    ): JsonResponse {
+        if (!$user) {
+            return new JsonResponse(['error' => 'No autenticado'], 401);
+        }
+
+        // Devuelve los eventos cuyo creador es el usuario autenticado
+        $events = $eventRepository->findBy(['organizer' => $user]);
+        $data = [];
+        foreach ($events as $event) {
+            $data[] = [
+                'id' => $event->getId(),
+                'title' => $event->getTitle(),
+                'description' => $event->getDescription(),
+                'date' => $event->getDate()->format('Y-m-d H:i:s'),
+                'location' => $event->getLocation(),
+                'category' => $event->getCategory(),
+                'capacity' => $event->getCapacity(),
+                'image' => $event->getImage()
+            ];
+        }
+
+        return new JsonResponse($data);
     }
 
     #[Route('/events/{id}', name: 'event_detail', methods: ['GET'])]
@@ -283,7 +345,13 @@ class EventApiController extends AbstractController
             'capacity' => $event->getCapacity(),
             'image' => $event->getImage(),
             'attendeesCount' => $attendeesCount,
-            'isJoined' => $isJoined
+            'isJoined' => $isJoined,
+            'organizer' => $event->getOrganizer() ? [
+                'id' => $event->getOrganizer()->getId(),
+                'name' => $event->getOrganizer()->getName(),
+                'surname' => $event->getOrganizer()->getSurname(),
+                'photo' => $event->getOrganizer()->getProfile(),
+            ] : null
         ];
         return new JsonResponse($data);
     }
@@ -322,5 +390,38 @@ class EventApiController extends AbstractController
         $event->removeAttendee($user);
         $em->flush();
         return new JsonResponse(['message' => 'Inscripción cancelada']);
+    }
+
+    #[Route('/events/{id}', name: 'event_update', methods: ['PUT', 'PATCH'])]
+    public function update(Event $event, Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $event->setTitle($data['title'] ?? $event->getTitle());
+        $event->setDescription($data['description'] ?? $event->getDescription());
+        $event->setDate(isset($data['date']) ? new \DateTime($data['date']) : $event->getDate());
+        $event->setLocation($data['location'] ?? $event->getLocation());
+        $event->setCategory($data['category'] ?? $event->getCategory());
+        $event->setCapacity($data['capacity'] ?? $event->getCapacity());
+        $event->setImage($data['image'] ?? $event->getImage());
+        $event->setSubcategory($data['subcategory'] ?? $event->getSubcategory());
+        $event->setPrice($data['price'] ?? $event->getPrice());
+
+        // --- Lógica para recalcular el estado ---
+        $eventDate = $event->getDate();
+        $now = new \DateTime();
+
+        if ($eventDate < $now) {
+            $event->setState('finalizado');
+        } else if ($eventDate->format('Y-m-d') === $now->format('Y-m-d')) {
+            $event->setState('en proceso');
+        } else {
+            $event->setState('abierto');
+        }
+        // ----------------------------------------
+
+        $em->flush();
+
+        return new JsonResponse(['message' => 'Evento actualizado']);
     }
 }

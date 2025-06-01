@@ -13,6 +13,14 @@ const EventDetails = () => {
     const [isJoined, setIsJoined] = useState(false);
     const [attendeesCount, setAttendeesCount] = useState(0);
     const [actionLoading, setActionLoading] = useState(false);
+    const [relatedEvents, setRelatedEvents] = useState([]);
+    const [organizer, setOrganizer] = useState(null);
+    const [reviews, setReviews] = useState([]);
+    const [reviewText, setReviewText] = useState('');
+    const [reviewRating, setReviewRating] = useState(5);
+    const [reviewLoading, setReviewLoading] = useState(false);
+    const [hoverRating, setHoverRating] = useState(null);
+    const [hasRated, setHasRated] = useState(false);
 
     const fetchEvent = async () => {
         try {
@@ -21,6 +29,12 @@ const EventDetails = () => {
             setEvent(data);
             setIsJoined(data.isJoined);
             setAttendeesCount(data.attendeesCount);
+            // Ahora los datos del organizador vienen completos en data.organizer
+            if (data.organizer) {
+                setOrganizer(data.organizer);
+            } else {
+                setOrganizer(null);
+            }
         } catch (err) {
             setError(err.message);
         } finally {
@@ -28,10 +42,29 @@ const EventDetails = () => {
         }
     };
 
+    const fetchReviews = async () => {
+        try {
+            const data = await api.getEventReviews(id);
+            setReviews(data);
+        } catch (err) {
+            setReviews([]);
+        }
+    };
+
     useEffect(() => {
         fetchEvent();
+        // Cargar eventos relacionados
+        const fetchRelated = async () => {
+            if (!event || !event.category) return;
+            try {
+                const all = await api.getEventsByCategory(event.category);
+                setRelatedEvents(all.filter(e => e.id !== event.id));
+            } catch {}
+        };
+        fetchRelated();
+        fetchReviews();
         // eslint-disable-next-line
-    }, [id]);
+    }, [id, event?.category]);
 
     const handleJoin = async () => {
         setActionLoading(true);
@@ -63,6 +96,39 @@ const EventDetails = () => {
         }
     };
 
+    const handleStarClick = (star) => {
+        setReviewRating(star);
+        setHasRated(true);
+    };
+
+    const handleStarMouseEnter = (star) => {
+        if (!hasRated) setHoverRating(star);
+    };
+
+    const handleStarMouseLeave = () => {
+        if (!hasRated) setHoverRating(null);
+    };
+
+    const handleReviewSubmit = async (e) => {
+        e.preventDefault();
+        setReviewLoading(true);
+        try {
+            await api.createEventReview(id, {
+                comment: reviewText,
+                rating: reviewRating
+            });
+            setReviewText('');
+            setReviewRating(5);
+            setHasRated(false);
+            fetchReviews(); // Recarga las reseñas
+            toast.success('¡Comentario publicado!');
+        } catch (err) {
+            toast.error('No se pudo publicar el comentario');
+        } finally {
+            setReviewLoading(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -87,29 +153,23 @@ const EventDetails = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 pb-12">
-            {/* Hero con imagen de fondo y tarjeta superpuesta */}
-            <div className="relative h-80 w-full flex items-end justify-center bg-gray-200">
+            {/* HERO VISUAL IGUAL QUE EN LA FOTO */}
+            <div className="relative h-80 w-full flex items-end justify-center bg-gray-200 mb-12">
                 <img
                     src={event.image || 'https://picsum.photos/1200/400'}
                     alt={event.title}
                     className="absolute inset-0 w-full h-full object-cover object-center opacity-80"
                 />
-                <div className="relative z-10 w-full max-w-3xl mb-[-3rem]">
-                    <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div>
-                            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2">{event.title}</h1>
-                            <div className="flex items-center gap-3 text-lg text-gray-700">
-                                <span className="inline-flex items-center gap-1">
-                                    <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                                    4.7
-                                </span>
-                                <span className="text-gray-500">•</span>
-                                <span className="capitalize">{event.category || 'General'}</span>
-                            </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                            <span className="text-gray-500 text-sm">Gastronomía</span>
-                            <span className="text-gray-500 text-sm">{event.location || '-'}</span>
+                <div className="relative z-10 w-full max-w-2xl mb-[-3rem]">
+                    <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col gap-2 items-start">
+                        <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2">{event.title}</h1>
+                        <div className="flex items-center gap-3 text-lg text-gray-700">
+                            <span className="inline-flex items-center gap-1">
+                                <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                                4.7
+                            </span>
+                            <span className="text-gray-500">•</span>
+                            <span className="capitalize">{event.category || 'General'}</span>
                         </div>
                     </div>
                 </div>
@@ -119,38 +179,36 @@ const EventDetails = () => {
             <div className="max-w-6xl mx-auto px-4 mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Columna principal */}
                 <div className="md:col-span-2 space-y-8">
-                    {/* Detalles del evento */}
-                    <div className="bg-white rounded-xl shadow p-8 mb-4">
-                        <h2 className="text-xl font-bold mb-4">Detalles del evento</h2>
-                        <p className="text-gray-700 mb-6">{event.description || 'Sin descripción.'}</p>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                            <div>
-                                <p className="text-sm text-gray-500 flex items-center gap-1">
-                                    <svg className="w-5 h-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    {/* Detalles del evento en formato moderno */}
+                    <div className="bg-white rounded-xl shadow p-8 mb-6">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-2">
+                            <div className="flex flex-col items-start">
+                                <span className="text-gray-500 text-sm flex items-center gap-2 mb-1">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                     Fecha
-                                </p>
-                                <p className="text-lg font-medium">{event.date ? new Date(event.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</p>
+                                </span>
+                                <span className="text-base font-semibold text-gray-900">{event.date ? new Date(event.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</span>
                             </div>
-                            <div>
-                                <p className="text-sm text-gray-500 flex items-center gap-1">
-                                    <svg className="w-5 h-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" /></svg>
+                            <div className="flex flex-col items-start">
+                                <span className="text-gray-500 text-sm flex items-center gap-2 mb-1">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" /></svg>
                                     Hora
-                                </p>
-                                <p className="text-lg font-medium">{event.date ? new Date(event.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '-'}</p>
+                                </span>
+                                <span className="text-base font-semibold text-gray-900">{event.date ? new Date(event.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '-'}</span>
                             </div>
-                            <div>
-                                <p className="text-sm text-gray-500 flex items-center gap-1">
-                                    <svg className="w-5 h-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            <div className="flex flex-col items-start">
+                                <span className="text-gray-500 text-sm flex items-center gap-2 mb-1">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                     Ubicación
-                                </p>
-                                <p className="text-lg font-medium">{event.location || '-'}</p>
+                                </span>
+                                <span className="text-base font-semibold text-gray-900">{event.location || '-'}</span>
                             </div>
-                            <div>
-                                <p className="text-sm text-gray-500 flex items-center gap-1">
-                                    <svg className="w-5 h-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                            <div className="flex flex-col items-start">
+                                <span className="text-gray-500 text-sm flex items-center gap-2 mb-1">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                                     Asistentes
-                                </p>
-                                <p className="text-lg font-medium">{attendeesCount} / {event.capacity || '-'}</p>
+                                </span>
+                                <span className="text-base font-semibold text-gray-900">{attendeesCount} / {event.capacity || '-'}</span>
                             </div>
                         </div>
                     </div>
@@ -169,12 +227,82 @@ const EventDetails = () => {
                     <div className="bg-white rounded-xl shadow p-8 mb-4">
                         <h2 className="text-xl font-bold mb-4">Comentarios y valoraciones</h2>
                         <div className="flex items-center mb-4">
-                            <span className="text-yellow-400 text-2xl mr-2">★★★★★</span>
-                            <span className="font-bold text-lg">4.7</span>
+                            <span className="text-yellow-400 text-2xl mr-2">
+                                {'★'.repeat(Math.round(
+                                    reviews.length ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length : 5
+                                ))}
+                                {'☆'.repeat(5 - Math.round(
+                                    reviews.length ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length : 5
+                                ))}
+                            </span>
+                            <span className="font-bold text-lg">
+                                {reviews.length
+                                    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
+                                    : '5.0'}
+                            </span>
                         </div>
-                        <textarea className="w-full border border-gray-300 rounded-md p-2 mb-4" placeholder="Comparte tu experiencia..." rows={3} disabled />
-                        <button className="bg-blue-800 text-white px-4 py-2 rounded-md font-semibold cursor-not-allowed" disabled>Publicar comentario</button>
-                        <p className="text-gray-500 mt-4">No hay comentarios aún. ¡Sé el primero en comentar!</p>
+                        {user ? (
+                            <form onSubmit={handleReviewSubmit}>
+                                <div className="flex items-center mb-2">
+                                    {[1,2,3,4,5].map((star) => (
+                                        <button
+                                            type="button"
+                                            key={star}
+                                            onClick={() => handleStarClick(star)}
+                                            onMouseEnter={() => handleStarMouseEnter(star)}
+                                            onMouseLeave={handleStarMouseLeave}
+                                            className={
+                                                ((hoverRating !== null ? star <= hoverRating : star <= reviewRating)
+                                                    ? 'text-yellow-400'
+                                                    : 'text-gray-300') +
+                                                ' text-2xl transition-colors duration-150 focus:outline-none'
+                                            }
+                                            style={{ cursor: 'pointer' }}
+                                            aria-label={`Valorar con ${star} estrella${star > 1 ? 's' : ''}`}
+                                        >
+                                            ★
+                                        </button>
+                                    ))}
+                                </div>
+                                <textarea
+                                    className="w-full border border-gray-300 rounded-md p-2 mb-4"
+                                    placeholder="Comparte tu experiencia..."
+                                    rows={3}
+                                    value={reviewText}
+                                    onChange={e => setReviewText(e.target.value)}
+                                    required
+                                />
+                                <button
+                                    className="bg-blue-800 text-white px-4 py-2 rounded-md font-semibold"
+                                    type="submit"
+                                    disabled={reviewLoading}
+                                >
+                                    {reviewLoading ? 'Publicando...' : 'Publicar comentario'}
+                                </button>
+                            </form>
+                        ) : (
+                            <p className="text-gray-500 mb-2">Inicia sesión para dejar un comentario.</p>
+                        )}
+                        <div className="mt-4">
+                            {reviews.length === 0 ? (
+                                <p className="text-gray-500">No hay comentarios aún. ¡Sé el primero en comentar!</p>
+                            ) : (
+                                reviews.map((r, idx) => (
+                                    <div key={idx} className="border-b py-4 flex items-start justify-between">
+                                        <div>
+                                            <div className="font-semibold">{r.user || 'Usuario'}</div>
+                                            <div className="text-xs text-gray-400">{r.createdAt?.split(' ')[0]}</div>
+                                            <div>{r.comment}</div>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            {[1,2,3,4,5].map(star => (
+                                                <span key={star} className={star <= r.rating ? 'text-yellow-400' : 'text-gray-300'}>★</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -224,26 +352,87 @@ const EventDetails = () => {
                     )}
                     <div className="bg-white rounded-xl shadow p-8">
                         <h3 className="text-lg font-bold mb-2">Organizador</h3>
-                        <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600">JA</div>
-                            <div>
-                                <p className="font-semibold">Jane Smith</p>
-                                <p className="text-yellow-500 flex items-center gap-1 text-sm"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>4.5</p>
+                        {organizer ? (
+                            <div className="flex items-center gap-3">
+                                {organizer.photo ? (
+                                    <img src={organizer.photo} alt={organizer.name} className="h-10 w-10 rounded-full object-cover" />
+                                ) : (
+                                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600">
+                                        {organizer.name?.[0]}{organizer.surname?.[0]}
+                                    </div>
+                                )}
+                                <div>
+                                    <p className="font-semibold">{organizer.name} {organizer.surname}</p>
+                                    <p className="text-yellow-500 flex items-center gap-1 text-sm">
+                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                                        4.5
+                                    </p>
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            <div className="text-gray-500">No disponible</div>
+                        )}
                     </div>
                     <div className="bg-white rounded-xl shadow p-8">
-                        <h3 className="text-lg font-bold mb-2">Comparte este evento</h3>
-                        <div className="flex gap-3">
-                            <button className="bg-gray-100 p-2 rounded hover:bg-gray-200"><i className="fab fa-facebook-f"></i></button>
-                            <button className="bg-gray-100 p-2 rounded hover:bg-gray-200"><i className="fab fa-twitter"></i></button>
-                            <button className="bg-gray-100 p-2 rounded hover:bg-gray-200"><i className="fab fa-instagram"></i></button>
-                            <button className="bg-gray-100 p-2 rounded hover:bg-gray-200"><i className="fab fa-discord"></i></button>
+                        <h3 className="text-lg font-bold mb-4">Comparte este evento</h3>
+                        <div className="flex gap-4 justify-center mt-2">
+                            {/* Twitter */}
+                            <a
+                                href="https://x.com/?lang=es"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-white border border-gray-200 rounded-xl p-4 hover:bg-blue-50 transition flex items-center justify-center text-2xl text-blue-500"
+                                title="Compartir en Twitter"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-7 h-7">
+                                    <path d="M22.46 5.924c-.793.352-1.645.59-2.54.698a4.48 4.48 0 001.963-2.475 8.94 8.94 0 01-2.828 1.082 4.48 4.48 0 00-7.635 4.086A12.72 12.72 0 013.11 4.86a4.48 4.48 0 001.39 5.976 4.45 4.45 0 01-2.03-.56v.057a4.48 4.48 0 003.6 4.393 4.48 4.48 0 01-2.025.077 4.48 4.48 0 004.184 3.11A8.98 8.98 0 012 19.54a12.67 12.67 0 006.88 2.02c8.26 0 12.78-6.84 12.78-12.77 0-.19-.01-.38-.02-.57A9.22 9.22 0 0024 4.59a8.93 8.93 0 01-2.54.698z" />
+                                </svg>
+                            </a>
+                            {/* Facebook */}
+                            <a
+                                href="https://www.facebook.com/?locale=es_ES"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-white border border-gray-200 rounded-xl p-4 hover:bg-blue-100 transition flex items-center justify-center text-2xl text-blue-700"
+                                title="Compartir en Facebook"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-7 h-7">
+                                    <path d="M22.675 0h-21.35C.595 0 0 .592 0 1.326v21.348C0 23.408.595 24 1.325 24h11.495v-9.294H9.691v-3.622h3.129V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.797.143v3.24l-1.918.001c-1.504 0-1.797.715-1.797 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116C23.406 24 24 23.408 24 22.674V1.326C24 .592 23.406 0 22.675 0"/>
+                                </svg>
+                            </a>
+                            {/* Instagram */}
+                            <a
+                                href="https://www.instagram.com/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-white border border-gray-200 rounded-xl p-4 hover:bg-pink-50 transition flex items-center justify-center text-2xl text-pink-500"
+                                title="Compartir en Instagram"
+                            >
+                                <img src="https://cdn-icons-png.flaticon.com/512/5968/5968776.png" alt="Instagram" className="w-9 h-7 object-contain" />
+
+                            </a>
+                            {/* Email */}
+                            <button className="bg-white border border-gray-200 rounded-xl p-4 hover:bg-indigo-50 transition flex items-center justify-center text-2xl text-indigo-500" title="Compartir por Email">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-7 h-7">
+                                    <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16zM4 20v-9.99l7.99 7.99c.39.39 1.02.39 1.41 0L20 10.01V20H4z" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
                     <div className="bg-white rounded-xl shadow p-8">
                         <h3 className="text-lg font-bold mb-2">Eventos relacionados</h3>
-                        <p className="text-gray-500">Próximamente eventos similares en esta categoría...</p>
+                        {relatedEvents.length > 0 ? (
+                            <div className="space-y-3">
+                                {relatedEvents.map(ev => (
+                                    <div key={ev.id} className="flex flex-col border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition">
+                                        <span className="font-semibold text-gray-800">{ev.title}</span>
+                                        <span className="text-xs text-gray-500">{ev.date ? new Date(ev.date).toLocaleDateString('es-ES') : ''}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500">Próximamente eventos similares en esta categoría...</p>
+                        )}
                     </div>
                 </div>
             </div>

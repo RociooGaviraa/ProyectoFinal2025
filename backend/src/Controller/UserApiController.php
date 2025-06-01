@@ -34,4 +34,20 @@ class UserApiController extends AbstractController
             ]
         ]);
     }
+
+    #[Route('/me', name: 'api_user_update', methods: ['PUT', 'PATCH'])]
+    public function updateMe(Request $request, #[CurrentUser] ?User $user, EntityManagerInterface $em): JsonResponse
+    {
+        if (!$user) {
+            return $this->json(['message' => 'No authenticated user found'], 401);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        if (isset($data['username'])) $user->setUsername($data['username']);
+        if (isset($data['email'])) $user->setEmail($data['email']);
+
+        $em->flush();
+
+        return $this->json(['message' => 'Perfil actualizado correctamente']);
+    }
 } 
