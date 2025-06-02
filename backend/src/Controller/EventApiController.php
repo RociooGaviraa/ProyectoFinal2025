@@ -35,6 +35,8 @@ class EventApiController extends AbstractController
                 'image' => $event->getImage(),
                 'attendees' => $attendeesCount,
                 'state' => $event->getState(),
+                'lat' => $event->getLat(),
+                'lng' => $event->getLng(),
             ];
         }
 
@@ -229,6 +231,17 @@ class EventApiController extends AbstractController
         // Guarda state, subcategory y price si existen
         if (isset($data['subcategory'])) $event->setSubcategory($data['subcategory']);
         if (isset($data['price'])) $event->setPrice($data['price']);
+
+        // Geocodificar la dirección para obtener lat/lng
+        if (!empty($data['location'])) {
+            error_log('Geocodificando dirección: ' . $data['location']);
+            $coords = $this->getCoordinatesFromAddress($data['location']);
+            error_log('Coordenadas obtenidas: ' . print_r($coords, true));
+            if ($coords) {
+                $event->setLat($coords['lat']);
+                $event->setLng($coords['lng']);
+            }
+        }
 
         // Si el evento tiene precio, crear producto y precio en Stripe y guardar el priceId
         if (isset($data['price']) && floatval($data['price']) > 0) {
@@ -447,5 +460,29 @@ class EventApiController extends AbstractController
         $em->flush();
 
         return new JsonResponse(['message' => 'Evento actualizado']);
+    }
+
+    /**
+     * Geocodifica una dirección usando Nominatim (OpenStreetMap)
+     */
+    private function getCoordinatesFromAddress(string $address): ?array
+    {
+        $url = 'https://nominatim.openstreetmap.org/search?format=json&q=' . urlencode($address);
+        $opts = [
+            "http" => [
+                "header" => "User-Agent: Eventfy/1.0\r\n"
+            ]
+        ];
+        $context = stream_context_create($opts);
+        $response = @file_get_contents($url, false, $context);
+        if ($response === false) return null;
+        $data = json_decode($response, true);
+        if (!empty($data) && isset($data[0]['lat'], $data[0]['lon'])) {
+            return [
+                'lat' => (float)$data[0]['lat'],
+                'lng' => (float)$data[0]['lon'],
+            ];
+        }
+        return null;
     }
 }

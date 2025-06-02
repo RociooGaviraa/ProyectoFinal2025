@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
 const eventCategories = [
     {
@@ -42,9 +48,44 @@ const eventCategories = [
     }
 ];
 
+// Icono por defecto para los marcadores
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
+
+// Simula coordenadas si no tienes en tus eventos
+const getEventPosition = (event, idx) => {
+  if (event.lat && event.lng) {
+    return [Number(event.lat), Number(event.lng)];
+  }
+  // Si no tiene, simula posiciones en Granada:
+  const baseLat = 37.1773;
+  const baseLng = -3.5986;
+  return [baseLat + 0.01 * idx, baseLng + 0.01 * idx];
+};
+
+// Componente auxiliar para ajustar el mapa a los eventos
+const FitBoundsToEvents = ({ events }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (events.length === 0) return;
+    const bounds = events
+      .filter(ev => ev.lat && ev.lng)
+      .map(ev => [ev.lat, ev.lng]);
+    if (bounds.length > 0) {
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [events, map]);
+  return null;
+};
+
 const Home = () => {
     const { user } = useAuth();
     const [featuredEvents, setFeaturedEvents] = useState([]);
+    const [allEvents, setAllEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -61,6 +102,7 @@ const Home = () => {
                     return;
                 }
                 const validEvents = events.filter(event => event && typeof event === 'object' && event.id);
+                setAllEvents(validEvents);
                 const featured = validEvents.length > 3 
                     ? validEvents.sort(() => 0.5 - Math.random()).slice(0, 3) 
                     : validEvents;
@@ -74,6 +116,14 @@ const Home = () => {
         };
         fetchEvents();
     }, []);
+
+    // Antes de renderizar el mapa
+    console.log('Eventos en el mapa:', allEvents.map(ev => ({
+      id: ev.id,
+      title: ev.title,
+      lat: ev.lat,
+      lng: ev.lng
+    })));
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-100">
@@ -207,6 +257,30 @@ const Home = () => {
                                 Únete ahora
                             </Link>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Map of Nearby Events */}
+            <section className="py-16 bg-gray-100">
+                <div className="container mx-auto px-4">
+                    <h2 className="text-4xl font-bold text-center mb-12 text-gray-800">Mapa de Eventos Cercanos</h2>
+                    <div className="w-full h-96 rounded-lg overflow-hidden shadow-lg">
+                        <MapContainer center={[37.1773, -3.5986]} zoom={12} style={{ height: "100%", width: "100%" }}>
+                            <FitBoundsToEvents events={allEvents} />
+                            <TileLayer
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            />
+                            {allEvents.map((event, idx) => (
+                                <Marker key={event.id} position={getEventPosition(event, idx)}>
+                                    <Popup>
+                                        <strong>{event.title}</strong><br />
+                                        {event.location}
+                                    </Popup>
+                                </Marker>
+                            ))}
+                        </MapContainer>
                     </div>
                 </div>
             </section>

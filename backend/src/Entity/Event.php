@@ -60,10 +60,16 @@ class Event
     private ?User $organizer = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
-    private ?string $stripeProductId;
+    private ?string $stripeProductId = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
-    private ?string $stripePriceId;
+    private ?string $stripePriceId = null;
+
+    #[ORM\Column(type: "float", nullable: true)]
+    private ?float $lat = null;
+
+    #[ORM\Column(type: "float", nullable: true)]
+    private ?float $lng = null;
 
     public function __construct()
     {
@@ -227,4 +233,9 @@ class Event
 
     public function getStripePriceId(): ?string { return $this->stripePriceId; }
     public function setStripePriceId(?string $id): self { $this->stripePriceId = $id; return $this; }
+
+    public function getLat(): ?float { return $this->lat; }
+    public function setLat(?float $lat): self { $this->lat = $lat; return $this; }
+    public function getLng(): ?float { return $this->lng; }
+    public function setLng(?float $lng): self { $this->lng = $lng; return $this; }
 }
