@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import logo from '../assets/logo.png';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
@@ -38,11 +39,8 @@ const Navbar = () => {
                     {/* Logo */}
                     <div className="flex items-center flex-shrink-0">
                         <Link to="/" className="flex items-center gap-2">
-                            <svg className="h-8 w-8 text-blue-900" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <rect x="2" y="2" width="20" height="20" rx="6" fill="#1e293b"/>
-                                <path d="M7 12h10M12 7v10" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            <span className="text-2xl font-extrabold text-blue-900 tracking-tight">EventHorizon</span>
+                            <img src={logo} alt="Eventfy Logo" className="h-10 w-10 object-contain" />
+                            <span className="text-2xl font-extrabold text-blue-900 tracking-tight">Eventfy</span>
                         </Link>
                     </div>
                     {/* Enlaces centrales */}

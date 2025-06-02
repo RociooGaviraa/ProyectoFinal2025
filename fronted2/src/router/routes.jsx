@@ -13,6 +13,8 @@ import MyEvents from '../pages/MyEvents';
 import AdminPanel from '../pages/AdminPanel';
 import UserEventsAdmin from '../pages/UserEventsAdmin';
 import ProtectedRoute from '../components/ProtectedRoute';
+import Success from '../pages/Success';
+import Cancel from '../pages/Cancel';
 
 
 export const router = createBrowserRouter([
@@ -80,6 +82,14 @@ export const router = createBrowserRouter([
                         <UserEventsAdmin />
                     </ProtectedRoute>
                 ),
+            },
+            {
+                path: "success",
+                element: <Success />,
+            },
+            {
+                path: "cancel",
+                element: <Cancel />,
             },
         ],
     },

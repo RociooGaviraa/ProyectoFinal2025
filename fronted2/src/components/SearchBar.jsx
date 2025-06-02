@@ -35,7 +35,7 @@ const SearchBar = ({ onSearch, initialValue = '' }) => {
           value={searchTerm}
           onChange={handleChange}
           className="w-full p-3 pl-10 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-          placeholder="Busca eventos, categorías, ubicaciones..."
+          placeholder="Busca Eventos por su nombre o lugar"
         />
         <button
           type="submit"

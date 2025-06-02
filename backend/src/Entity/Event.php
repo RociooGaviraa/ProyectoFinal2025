@@ -59,6 +59,12 @@ class Event
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', name: 'organizer_id', referencedColumnName: 'id')]
     private ?User $organizer = null;
 
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    private ?string $stripeProductId;
+
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    private ?string $stripePriceId;
+
     public function __construct()
     {
         $this->attendees = new ArrayCollection();
@@ -215,4 +221,10 @@ class Event
         $this->organizer = $organizer;
         return $this;
     }
+
+    public function getStripeProductId(): ?string { return $this->stripeProductId; }
+    public function setStripeProductId(?string $id): self { $this->stripeProductId = $id; return $this; }
+
+    public function getStripePriceId(): ?string { return $this->stripePriceId; }
+    public function setStripePriceId(?string $id): self { $this->stripePriceId = $id; return $this; }
 }

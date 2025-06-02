@@ -58,7 +58,8 @@ const EventDetails = () => {
             if (!event || !event.category) return;
             try {
                 const all = await api.getEventsByCategory(event.category);
-                setRelatedEvents(all.filter(e => e.id !== event.id));
+                // Filtra solo los eventos de la misma categoría y que no sean el actual
+                setRelatedEvents(all.filter(e => e.id !== event.id && e.category === event.category));
             } catch {}
         };
         fetchRelated();
@@ -91,6 +92,38 @@ const EventDetails = () => {
         } catch (err) {
             setError(err.message);
             toast.error(err.message || 'No se pudo cancelar la inscripción');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleBuy = async () => {
+        setActionLoading(true);
+        try {
+            // LOG para depuración
+            console.log('Intentando comprar. event:', event);
+            console.log('stripePriceId enviado:', event.stripePriceId);
+            // Llama a tu backend para crear la sesión de Stripe Checkout
+            const token = localStorage.getItem('jwt_token');
+            const response = await fetch(`/api/stripe/create-checkout-session`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    priceId: event.stripePriceId, // este campo debe estar en tu evento
+                    eventId: event.id
+                }),
+            });
+            const data = await response.json();
+            if (data.url) {
+                window.location.href = data.url; // Redirige a Stripe Checkout
+            } else {
+                toast.error('No se pudo iniciar el pago.');
+            }
+        } catch (err) {
+            toast.error('Error al conectar con Stripe.');
         } finally {
             setActionLoading(false);
         }
@@ -150,6 +183,7 @@ const EventDetails = () => {
     if (!event) return null;
 
     const plazasDisponibles = event.capacity - attendeesCount;
+    const isPaid = event.price && !isNaN(Number(event.price)) && Number(event.price) > 0;
 
     return (
         <div className="min-h-screen bg-gray-50 pb-12">
@@ -329,20 +363,30 @@ const EventDetails = () => {
                                 </button>
                             </div>
                         ) : (
-                            <button
-                                onClick={handleJoin}
-                                style={{
-                                    background: '#1976d2',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: 6,
-                                    padding: '10px 24px',
-                                    fontWeight: 'bold',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Unirse al evento
-                            </button>
+                            isPaid ? (
+                                <button
+                                    onClick={handleBuy}
+                                    className="bg-green-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-green-700 transition w-full text-center"
+                                    disabled={actionLoading}
+                                >
+                                    {actionLoading ? 'Redirigiendo...' : `Comprar (${event.price} €)`}
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleJoin}
+                                    style={{
+                                        background: '#1976d2',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: 6,
+                                        padding: '10px 24px',
+                                        fontWeight: 'bold',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Unirse al evento
+                                </button>
+                            )
                         )
                     ) : (
                         <div className="bg-white rounded-xl shadow p-8 flex flex-col items-center">
@@ -424,10 +468,22 @@ const EventDetails = () => {
                         {relatedEvents.length > 0 ? (
                             <div className="space-y-3">
                                 {relatedEvents.map(ev => (
-                                    <div key={ev.id} className="flex flex-col border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition">
-                                        <span className="font-semibold text-gray-800">{ev.title}</span>
-                                        <span className="text-xs text-gray-500">{ev.date ? new Date(ev.date).toLocaleDateString('es-ES') : ''}</span>
-                                    </div>
+                                    <Link
+                                        key={ev.id}
+                                        to={`/events/${ev.id}`}
+                                        className="flex items-center justify-between border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition cursor-pointer gap-2"
+                                    >
+                                        <span className="font-semibold text-gray-800 truncate overflow-hidden whitespace-nowrap max-w-xs block">{ev.title}</span>
+                                        {ev.state && (
+                                            <span className={`text-xs font-semibold px-3 py-1 rounded-full shadow-lg z-10
+                                                ${ev.state === "Finalizado" ? "bg-red-600 text-white" : ""}
+                                                ${ev.state === "En proceso" ? "bg-gray-500 text-white" : ""}
+                                                ${ev.state === "Abierto" ? "bg-blue-600 text-white" : ""}
+                                            `}>
+                                                {ev.state}
+                                            </span>
+                                        )}
+                                    </Link>
                                 ))}
                             </div>
                         ) : (

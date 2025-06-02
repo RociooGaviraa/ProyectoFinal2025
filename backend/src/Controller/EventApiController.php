@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use App\Repository\EventParticipantRepository;
+use App\Service\StripeService;
 
 #[Route('/api', name: 'api_')]
 class EventApiController extends AbstractController
@@ -32,7 +33,8 @@ class EventApiController extends AbstractController
                 'category' => $event->getCategory(),
                 'capacity' => $event->getCapacity(),
                 'image' => $event->getImage(),
-                'attendees' => $attendeesCount
+                'attendees' => $attendeesCount,
+                'state' => $event->getState(),
             ];
         }
 
@@ -54,7 +56,8 @@ class EventApiController extends AbstractController
                 'location' => $event->getLocation(),
                 'category' => $event->getCategory(),
                 'capacity' => $event->getCapacity(),
-                'image' => $event->getImage()
+                'image' => $event->getImage(),
+                'state' => $event->getState(),
             ];
         }
 
@@ -78,7 +81,8 @@ class EventApiController extends AbstractController
             'location' => $event->getLocation(),
             'category' => $event->getCategory(),
             'capacity' => $event->getCapacity(),
-            'image' => $event->getImage()
+            'image' => $event->getImage(),
+            'state' => $event->getState(),
         ];
 
         return new JsonResponse($data);
@@ -156,13 +160,14 @@ class EventApiController extends AbstractController
             
             $eventDate = $event->getDate();
             $now = new \DateTime();
+            $enProcesoFin = (clone $eventDate)->modify('+1 hour 30 minutes');
 
-            if ($eventDate < $now) {
-                $event->setState('finalizado');
-            } else if ($eventDate->format('Y-m-d') === $now->format('Y-m-d')) {
-                $event->setState('en proceso');
+            if ($now < $eventDate) {
+                $event->setState('Abierto');
+            } elseif ($now >= $eventDate && $now < $enProcesoFin) {
+                $event->setState('En proceso');
             } else {
-                $event->setState('abierto');
+                $event->setState('Finalizado');
             }
 
             $entityManager->persist($event);
@@ -197,7 +202,7 @@ class EventApiController extends AbstractController
     }
 
     #[Route('/events', name: 'event_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager, #[CurrentUser] ?\App\Entity\User $user = null): JsonResponse
+    public function create(Request $request, EntityManagerInterface $entityManager, #[CurrentUser] ?\App\Entity\User $user = null, StripeService $stripeService): JsonResponse
     {
         if (!$user) {
             return new JsonResponse(['error' => 'No autenticado'], 401);
@@ -225,15 +230,26 @@ class EventApiController extends AbstractController
         if (isset($data['subcategory'])) $event->setSubcategory($data['subcategory']);
         if (isset($data['price'])) $event->setPrice($data['price']);
 
+        // Si el evento tiene precio, crear producto y precio en Stripe y guardar el priceId
+        if (isset($data['price']) && floatval($data['price']) > 0) {
+            $stripeResult = $stripeService->createProductWithPrice(
+                $event->getTitle(),
+                $event->getDescription(),
+                floatval($event->getPrice())
+            );
+            $event->setStripePriceId($stripeResult['priceId']);
+        }
+
         $eventDate = $event->getDate();
         $now = new \DateTime();
+        $enProcesoFin = (clone $eventDate)->modify('+1 hour 30 minutes');
 
-        if ($eventDate < $now) {
-            $event->setState('finalizado');
-        } else if ($eventDate->format('Y-m-d') === $now->format('Y-m-d')) {
-            $event->setState('en proceso');
+        if ($now < $eventDate) {
+            $event->setState('Abierto');
+        } elseif ($now >= $eventDate && $now < $enProcesoFin) {
+            $event->setState('En proceso');
         } else {
-            $event->setState('abierto');
+            $event->setState('Finalizado');
         }
 
         $entityManager->persist($event);
@@ -252,7 +268,9 @@ class EventApiController extends AbstractController
                 'image' => $event->getImage(),
                 'subcategory' => $event->getSubcategory(),
                 'price' => $event->getPrice(),
-                'organizer' => $user->getId()
+                'stripePriceId' => $event->getStripePriceId(),
+                'organizer' => $user->getId(),
+                'state' => $event->getState(),
             ]
         ], 201);
     }
@@ -279,7 +297,8 @@ class EventApiController extends AbstractController
                 'location' => $event->getLocation(),
                 'category' => $event->getCategory(),
                 'capacity' => $event->getCapacity(),
-                'image' => $event->getImage()
+                'image' => $event->getImage(),
+                'state' => $event->getState(),
             ];
         }
 
@@ -307,7 +326,8 @@ class EventApiController extends AbstractController
                 'location' => $event->getLocation(),
                 'category' => $event->getCategory(),
                 'capacity' => $event->getCapacity(),
-                'image' => $event->getImage()
+                'image' => $event->getImage(),
+                'state' => $event->getState(),
             ];
         }
 
@@ -351,7 +371,10 @@ class EventApiController extends AbstractController
                 'name' => $event->getOrganizer()->getName(),
                 'surname' => $event->getOrganizer()->getSurname(),
                 'photo' => $event->getOrganizer()->getProfile(),
-            ] : null
+            ] : null,
+            'state' => $event->getState(),
+            'price' => $event->getPrice(),
+            'stripePriceId' => $event->getStripePriceId(),
         ];
         return new JsonResponse($data);
     }
@@ -410,13 +433,14 @@ class EventApiController extends AbstractController
         // --- Lógica para recalcular el estado ---
         $eventDate = $event->getDate();
         $now = new \DateTime();
+        $enProcesoFin = (clone $eventDate)->modify('+1 hour 30 minutes');
 
-        if ($eventDate < $now) {
-            $event->setState('finalizado');
-        } else if ($eventDate->format('Y-m-d') === $now->format('Y-m-d')) {
-            $event->setState('en proceso');
+        if ($now < $eventDate) {
+            $event->setState('Abierto');
+        } elseif ($now >= $eventDate && $now < $enProcesoFin) {
+            $event->setState('En proceso');
         } else {
-            $event->setState('abierto');
+            $event->setState('Finalizado');
         }
         // ----------------------------------------
 

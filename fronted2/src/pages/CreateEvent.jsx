@@ -38,6 +38,14 @@ const CreateEvent = () => {
             ) {
                 state = "en proceso";
             }
+
+            if (!formData.subcategory && (!formData.price || parseFloat(formData.price) <= 0)) {
+                setError('Debes indicar un precio válido para eventos de pago.');
+                setLoading(false);
+                return;
+            }
+
+            // Solo enviar los datos del evento, sin stripeProductId ni stripePriceId
             const eventData = {
                 title: formData.title,
                 description: formData.description,
@@ -46,8 +54,9 @@ const CreateEvent = () => {
                 category: formData.type,
                 capacity: formData.maxParticipants,
                 subcategory: formData.subcategory,
-                price: formData.price,
+                price: formData.price
             };
+
             await api.createEvent(eventData);
             setSuccess('¡Evento creado correctamente!');
             setTimeout(() => {
@@ -66,12 +75,12 @@ const CreateEvent = () => {
                 <h1 className="text-3xl font-bold text-gray-900 mb-8">Crear nuevo evento</h1>
                 <p className="text-gray-600 mb-6">Completa la información de tu evento para publicarlo.</p>
                 {error && (
-                    <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
                         {error}
                     </div>
                 )}
                 {success && (
-                    <div className="bg-green-50 text-green-700 p-4 rounded-md mb-6">
+                    <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
                         {success}
                     </div>
                 )}

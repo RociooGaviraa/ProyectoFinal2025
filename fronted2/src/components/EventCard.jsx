@@ -14,6 +14,7 @@ const EventCard = ({ event }) => {
     capacity,
     rating = 4.7,
     attendees = 0,
+    state,
   } = event;
 
   const [isFavorite, setIsFavorite] = useState(false);
@@ -62,6 +63,23 @@ const EventCard = ({ event }) => {
         {isFavorite ? "❤️" : "🤍"}
       </button>
 
+      {/* Estado visual encima de la imagen */}
+      {state === "Finalizado" && (
+        <span className="absolute top-3 right-3 bg-red-600 text-white text-xs px-3 py-1 rounded-full shadow-lg z-10">
+          Finalizado
+        </span>
+      )}
+      {state === "En proceso" && (
+        <span className="absolute top-3 right-3 bg-gray-500 text-white text-xs px-3 py-1 rounded-full shadow-lg z-10">
+          En proceso
+        </span>
+      )}
+      {state === "Abierto" && (
+        <span className="absolute top-3 right-3 bg-blue-600 text-white text-xs px-3 py-1 rounded-full shadow-lg z-10">
+          Abierto
+        </span>
+      )}
+
       {/* Imagen */}
       <Link to={`/events/${id}`}>
         <img
@@ -70,11 +88,6 @@ const EventCard = ({ event }) => {
           className="w-full h-44 object-cover"
         />
       </Link>
-
-      {/* Categoría */}
-      <span className="absolute top-4 right-4 bg-gray-800 text-white text-xs px-3 py-0.5 rounded-full">
-        {category || "Categoría"}
-      </span>
 
       <div className="p-5 space-y-3">
         {/* Título */}
