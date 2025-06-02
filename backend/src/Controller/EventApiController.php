@@ -388,6 +388,8 @@ class EventApiController extends AbstractController
             'state' => $event->getState(),
             'price' => $event->getPrice(),
             'stripePriceId' => $event->getStripePriceId(),
+            'lat' => $event->getLat(),
+            'lng' => $event->getLng(),
         ];
         return new JsonResponse($data);
     }

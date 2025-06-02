@@ -3,6 +3,19 @@ import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+// Configura el icono por defecto de Leaflet
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
 
 const EventDetails = () => {
     const { id } = useParams();
@@ -215,46 +228,66 @@ const EventDetails = () => {
                 <div className="md:col-span-2 space-y-8">
                     {/* Detalles del evento en formato moderno */}
                     <div className="bg-white rounded-xl shadow p-8 mb-6">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-2">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-2">
                             <div className="flex flex-col items-start">
                                 <span className="text-gray-500 text-sm flex items-center gap-2 mb-1">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 22 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                     Fecha
                                 </span>
-                                <span className="text-base font-semibold text-gray-900">{event.date ? new Date(event.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</span>
+                                <span className="text-base font-semibold text-gray-900">{event.date ? new Date(event.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'numeric', year: 'numeric' }) : '-'}</span>
                             </div>
                             <div className="flex flex-col items-start">
                                 <span className="text-gray-500 text-sm flex items-center gap-2 mb-1">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" /></svg>
-                                    Hora
+                                    🕑 Hora
                                 </span>
                                 <span className="text-base font-semibold text-gray-900">{event.date ? new Date(event.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '-'}</span>
                             </div>
                             <div className="flex flex-col items-start">
                                 <span className="text-gray-500 text-sm flex items-center gap-2 mb-1">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                    Ubicación
+                                    💰Precio
                                 </span>
-                                <span className="text-base font-semibold text-gray-900">{event.location || '-'}</span>
+                                <span className="text-base font-semibold text-gray-900">{event.price ? `${event.price} €` : 'Gratis'}</span>
                             </div>
-                            <div className="flex flex-col items-start">
+
+                            {/* <div className="flex flex-col items-start">
                                 <span className="text-gray-500 text-sm flex items-center gap-2 mb-1">
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                                     Asistentes
                                 </span>
                                 <span className="text-base font-semibold text-gray-900">{attendeesCount} / {event.capacity || '-'}</span>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 
                     {/* Ubicación y mapa (simulado) */}
                     <div className="bg-white rounded-xl shadow p-8 mb-4">
                         <h2 className="text-xl font-bold mb-4">Ubicación</h2>
-                        <div className="bg-gray-100 rounded-lg p-6 text-center text-gray-500 mb-4">
-                            <span className="block font-semibold mb-2">Mapa Interactivo</span>
-                            <span className="text-sm">Esta es una simulación de mapa para la demo del proyecto. En la implementación final se integraría con Google Maps.</span>
+                        <div className="mb-4">
+                            <div className="text-gray-700 font-medium">{event.location || '-'}, España</div>
                         </div>
-                        <div className="text-gray-700 font-medium">{event.title || '-'}<br />{event.location || '-'}, España</div>
+                        {event.lat && event.lng ? (
+                            <div className="w-full h-64 rounded-lg overflow-hidden shadow-lg mt-4">
+                                <MapContainer
+                                    center={[Number(event.lat), Number(event.lng)]}
+                                    zoom={15}
+                                    style={{ height: "100%", width: "100%" }}
+                                    scrollWheelZoom={false}
+                                >
+                                    <TileLayer
+                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                    />
+                                    <Marker position={[Number(event.lat), Number(event.lng)]}>
+                                        <Popup>
+                                            <strong>{event.title}</strong><br />
+                                            {event.location}
+                                        </Popup>
+                                    </Marker>
+                                </MapContainer>
+                            </div>
+                        ) : (
+                            <div className="text-gray-500">No hay coordenadas para este evento.</div>
+                        )}
                     </div>
 
                     {/* Comentarios y valoraciones (simulado) */}
@@ -425,7 +458,7 @@ const EventDetails = () => {
                                 href="https://x.com/?lang=es"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="bg-white border border-gray-200 rounded-xl p-4 hover:bg-blue-50 transition flex items-center justify-center text-2xl text-blue-500"
+                                className="bg-white border border-gray-200 rounded-xl p-4 hover:bg-blue-100 transition flex items-center justify-center text-2xl text-blue-700"
                                 title="Compartir en Twitter"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-7 h-7">
@@ -449,18 +482,26 @@ const EventDetails = () => {
                                 href="https://www.instagram.com/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="bg-white border border-gray-200 rounded-xl p-4 hover:bg-pink-50 transition flex items-center justify-center text-2xl text-pink-500"
+                                className="bg-white border border-gray-200 rounded-xl p-4 hover:bg-blue-100 transition flex items-center justify-center text-2xl text-blue-700"
                                 title="Compartir en Instagram"
                             >
                                 <img src="https://cdn-icons-png.flaticon.com/512/5968/5968776.png" alt="Instagram" className="w-9 h-7 object-contain" />
 
                             </a>
-                            {/* Email */}
-                            <button className="bg-white border border-gray-200 rounded-xl p-4 hover:bg-indigo-50 transition flex items-center justify-center text-2xl text-indigo-500" title="Compartir por Email">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-7 h-7">
-                                    <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16zM4 20v-9.99l7.99 7.99c.39.39 1.02.39 1.41 0L20 10.01V20H4z" />
-                                </svg>
-                            </button>
+                            {/* TikTok */}
+                            <a
+                                href="https://www.tiktok.com/es/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-white border border-gray-200 rounded-xl p-4 hover:bg-blue-100 transition flex items-center justify-center text-2xl text-blue-700"
+                                title="Compartir en TikTok"
+                            >
+                                <img
+                                    src="https://cdn-icons-png.flaticon.com/512/3046/3046122.png"
+                                    alt="TikTok"
+                                    className="w-7 h-7 object-contain"
+                                />
+                            </a>
                         </div>
                     </div>
                     <div className="bg-white rounded-xl shadow p-8">
