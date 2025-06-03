@@ -100,17 +100,19 @@ const EventDetails = () => {
             // LOG para depuración
             console.log('Intentando comprar. event:', event);
             console.log('stripePriceId enviado:', event.stripePriceId);
-            // Llama a tu backend para crear la sesión de Stripe Checkout
+            // Llama a tu backend para crear la sesión de Stripe
             const token = localStorage.getItem('jwt_token');
-            const response = await fetch(`/api/stripe/create-checkout-session`, {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const response = await fetch('/api/stripe/create-checkout-session', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    priceId: event.stripePriceId,// este campo debe estar en tu evento
-                    eventId: event.id
+                    priceId: event.stripePriceId,
+                    eventId: event.id,
+                    userId: user.id
                 }),
             });
             const data = await response.json();

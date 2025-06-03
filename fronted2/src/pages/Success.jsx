@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { api } from '../services/api'; // Asegúrate de importar tu api
 
 const Success = () => {
   const { user } = useAuth();
@@ -12,6 +13,13 @@ const Success = () => {
     const params = new URLSearchParams(location.search);
     eventId = params.get('eventId');
   }
+
+  // Inscribir al usuario automáticamente al evento pagado
+  useEffect(() => {
+    if (eventId && user) {
+      api.joinEvent(eventId).catch(() => {}); // Ignora errores si ya está inscrito
+    }
+  }, [eventId, user]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-light">
