@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import logo from '../assets/logo.png';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -28,62 +29,53 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                    Sign in to your account
-                </h2>
-            </div>
-
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-                    {error && (
-                        <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
-                            {error}
-                        </div>
-                    )}
-
-                    <form className="space-y-6" onSubmit={handleSubmit}>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                required
-                                autoComplete="email"
-                                value={formData.email}
-                                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                                Password
-                            </label>
-                            <input
-                                type="password"
-                                required
-                                autoComplete="current-password"
-                                value={formData.password}
-                                onChange={(e) => setFormData({...formData, password: e.target.value})}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            />
-                        </div>
-
-                        <div>
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                                    loading ? 'bg-gray-400' : 'bg-indigo-600 hover:bg-indigo-700'
-                                }`}
-                            >
-                                {loading ? 'Signing in...' : 'Sign in'}
-                            </button>
-                        </div>
-                    </form>
+        <div className="min-h-screen flex justify-center items-center px-4 bg-gradient-to-br from-pink-100 via-blue-50 to-yellow-50">
+            <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center -mt-16 mb-16">
+                <img src={logo} alt="Eventfy Logo" className="h-16 w-16 mb-0 drop-shadow-lg" />
+                <h2 className="text-center text-3xl font-bold text-blue-900 mb-1 tracking-tight">Inicia sesión en tu cuenta</h2>
+                <p className="text-center text-base text-pink-600 font-semibold mb-4">¡Bienvenido de nuevo a Eventfy!</p>
+                <div className="mt-4 w-full">
+                    <div className="bg-white py-8 px-6 shadow-xl rounded-2xl border border-pink-200">
+                        {error && (
+                            <div className="bg-pink-50 text-pink-700 p-4 rounded-md mb-6 border border-pink-200">
+                                {error}
+                            </div>
+                        )}
+                        <form className="space-y-6" onSubmit={handleSubmit}>
+                            <div>
+                                <label className="block text-sm font-medium text-blue-900">Email</label>
+                                <input
+                                    type="email"
+                                    required
+                                    autoComplete="email"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                    className="mt-1 block w-full rounded-md border-pink-300 shadow-sm focus:border-pink-400 focus:ring-pink-200 bg-pink-50/40 text-blue-900"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-blue-900">Contraseña</label>
+                                <input
+                                    type="password"
+                                    required
+                                    autoComplete="current-password"
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                    className="mt-1 block w-full rounded-md border-pink-300 shadow-sm focus:border-pink-400 focus:ring-pink-200 bg-pink-50/40 text-blue-900"
+                                />
+                            </div>
+                            <div>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className={`w-full flex justify-center py-2 px-4 rounded-md shadow-md text-base font-bold text-white transition-all duration-200
+                                        ${loading ? 'bg-pink-300 cursor-not-allowed' : 'bg-gradient-to-r from-pink-500 via-blue-500 to-yellow-400 hover:from-pink-600 hover:via-blue-600 hover:to-yellow-500'}`}
+                                >
+                                    {loading ? 'Entrando...' : 'Iniciar sesión'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

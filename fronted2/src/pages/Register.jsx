@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { toast } from "sonner";  // Changed this line
+import { toast } from "sonner";
+import logo from '../assets/logo.png';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -19,10 +20,10 @@ const Register = () => {
         e.preventDefault();
         try {
             await register(formData);
-            toast.success("Registration successful!");
+            toast.success("¡Registro exitoso!");
             navigate('/login');
         } catch (error) {
-            toast.error(error.message || "Registration failed");
+            toast.error(error.message || "Error en el registro");
         }
     };
 
@@ -34,91 +35,99 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Create your account
-                    </h2>
+        <div className="min-h-screen flex justify-center items-center px-4 bg-gradient-to-br from-pink-100 via-blue-50 to-yellow-50">
+            <div className="sm:mx-auto sm:w-full sm:max-w-lg flex flex-col items-center -mt-8 mb-8">
+                <img src={logo} alt="Eventfy Logo" className="h-16 w-16 mb-0 drop-shadow-lg" />
+                <h2 className="text-center text-3xl font-bold text-blue-900 mb-1 tracking-tight">Crea tu cuenta</h2>
+                <p className="text-center text-base text-pink-600 font-semibold mb-4">¡Únete a Eventfy!</p>
+                <div className="mt-2 w-full">
+                    <div className="bg-white py-4 px-8 shadow-xl rounded-2xl border border-pink-200">
+                        <form className="space-y-4" onSubmit={handleSubmit}>
+                            <div>
+                                <label className="block text-sm font-medium text-blue-900">Email</label>
+                                <input
+                                    name="email"
+                                    type="email"
+                                    required
+                                    autoComplete="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full rounded-md border-pink-300 shadow-sm focus:border-pink-400 focus:ring-pink-200 bg-pink-50/40 text-blue-900"
+                                    placeholder="ejemplo@email.com"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-blue-900">Usuario</label>
+                                <input
+                                    name="username"
+                                    type="text"
+                                    required
+                                    value={formData.username}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full rounded-md border-pink-300 shadow-sm focus:border-pink-400 focus:ring-pink-200 bg-pink-50/40 text-blue-900"
+                                    placeholder="ej: juanperez23"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-blue-900">Contraseña</label>
+                                <input
+                                    name="password"
+                                    type="password"
+                                    required
+                                    autoComplete="new-password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full rounded-md border-pink-300 shadow-sm focus:border-pink-400 focus:ring-pink-200 bg-pink-50/40 text-blue-900"
+                                    placeholder="Mínimo 8 caracteres"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-blue-900">Nombre</label>
+                                <input
+                                    name="name"
+                                    type="text"
+                                    required
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full rounded-md border-pink-300 shadow-sm focus:border-pink-400 focus:ring-pink-200 bg-pink-50/40 text-blue-900"
+                                    placeholder="ej: Juan"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-blue-900">Apellido</label>
+                                <input
+                                    name="surname"
+                                    type="text"
+                                    required
+                                    value={formData.surname}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full rounded-md border-pink-300 shadow-sm focus:border-pink-400 focus:ring-pink-200 bg-pink-50/40 text-blue-900"
+                                    placeholder="ej: Pérez"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-blue-900">Fecha de nacimiento</label>
+                                <input
+                                    name="birthDate"
+                                    type="date"
+                                    required
+                                    value={formData.birthDate}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full rounded-md border-pink-300 shadow-sm focus:border-pink-400 focus:ring-pink-200 bg-pink-50/40 text-blue-900"
+                                    placeholder="ej: 2000-01-31"
+                                />
+                            </div>
+                            <div>
+                                <button
+                                    type="submit"
+                                    className="w-full flex justify-center py-2 px-4 rounded-md shadow-md text-base font-bold text-white transition-all duration-200 bg-gradient-to-r from-pink-500 via-blue-500 to-yellow-400 hover:from-pink-600 hover:via-blue-600 hover:to-yellow-500"
+                                >
+                                    Registrarse
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                    <div className="rounded-md shadow-sm -space-y-px">
-                        <div>
-                            <input
-                                name="email"
-                                type="email"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                placeholder="Email address"
-                                value={formData.email}
-                                onChange={handleChange}
-                            />
-                        </div>
-                        <div>
-                            <input
-                                name="username"
-                                type="text"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                placeholder="Username"
-                                value={formData.username}
-                                onChange={handleChange}
-                            />
-                        </div>
-                        <div>
-                            <input
-                                name="password"
-                                type="password"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                placeholder="Password"
-                                value={formData.password}
-                                onChange={handleChange}
-                            />
-                        </div>
-                        <div>
-                            <input
-                                name="name"
-                                type="text"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                placeholder="Name"
-                                value={formData.name}
-                                onChange={handleChange}
-                            />
-                        </div>
-                        <div>
-                            <input
-                                name="surname"
-                                type="text"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                placeholder="Surname"
-                                value={formData.surname}
-                                onChange={handleChange}
-                            />
-                        </div>
-                        <div>
-                            <input
-                                name="birthDate"
-                                type="date"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                value={formData.birthDate}
-                                onChange={handleChange}
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <button
-                            type="submit"
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                            Register
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
     );

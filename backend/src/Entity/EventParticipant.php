@@ -18,6 +18,7 @@ class EventParticipant
     private ?User $user = null;
 
     #[ORM\ManyToOne(targetEntity: Event::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
     private ?Event $event = null;
 
     #[ORM\Column(type: 'datetime')]

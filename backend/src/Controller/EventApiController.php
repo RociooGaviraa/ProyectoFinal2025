@@ -383,7 +383,7 @@ class EventApiController extends AbstractController
                 'id' => $event->getOrganizer()->getId(),
                 'name' => $event->getOrganizer()->getName(),
                 'surname' => $event->getOrganizer()->getSurname(),
-                'photo' => $event->getOrganizer()->getProfile(),
+                'avatar' => $event->getOrganizer()->getAvatar(),
             ] : null,
             'state' => $event->getState(),
             'price' => $event->getPrice(),

@@ -9,7 +9,6 @@ import EventDetails from '../pages/EventDetails';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import UserProfile from '../pages/UserProfile';
-import MyEvents from '../pages/MyEvents';
 import AdminPanel from '../pages/AdminPanel';
 import UserEventsAdmin from '../pages/UserEventsAdmin';
 import ProtectedRoute from '../components/ProtectedRoute';
@@ -56,14 +55,6 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute>
                         <UserProfile />
-                    </ProtectedRoute>
-                ),
-            },
-            {
-                path: "mis-eventos",
-                element: (
-                    <ProtectedRoute>
-                        <MyEvents />
                     </ProtectedRoute>
                 ),
             },

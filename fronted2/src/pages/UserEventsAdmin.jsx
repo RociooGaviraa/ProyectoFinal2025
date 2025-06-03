@@ -57,6 +57,15 @@ const UserEventsAdmin = () => {
         }
     };
 
+    const handleDeleteEvent = async (eventId) => {
+        try {
+            await api.deleteEvent(eventId);
+            setCreatedEvents((prev) => prev.filter(event => event.id !== eventId));
+        } catch (error) {
+            alert('No se pudo borrar el evento');
+        }
+    };
+
     if (loading || userLoading) return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100">
             <div className="text-xl text-blue-900 font-semibold">Cargando eventos...</div>
@@ -71,7 +80,7 @@ const UserEventsAdmin = () => {
                 {eventList.map(event =>
                     isAdminTab
                         ? <EventCardAdmin key={event.id} event={event} userId={id} onUnsubscribe={() => handleUnsubscribe(event.id)} />
-                        : <EventCard key={event.id} event={event} />
+                        : <EventCardAdmin key={event.id} event={event} onDelete={() => handleDeleteEvent(event.id)} />
                 )}
             </div>
         )

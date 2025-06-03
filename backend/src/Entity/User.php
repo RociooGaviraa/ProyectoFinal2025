@@ -32,9 +32,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: "date", nullable: false)]
     private ?\DateTimeInterface $birthDate = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $profile = null;
-
     #[ORM\Column]
     private array $roles = [];
 
@@ -49,6 +46,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: EventParticipant::class)]
     private Collection $eventParticipations;
+
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    private ?string $avatar = null;
 
     public function __construct()
     {
@@ -175,17 +175,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getProfile(): ?string
-    {
-        return $this->profile;
-    }
-
-    public function setProfile(?string $profile): static
-    {
-        $this->profile = $profile;
-        return $this;
-    }
-
     public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
@@ -227,5 +216,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getEventParticipations(): Collection
     {
         return $this->eventParticipations;
+    }
+
+    public function getAvatar(): ?string
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?string $avatar): self
+    {
+        $this->avatar = $avatar;
+        return $this;
     }
 }

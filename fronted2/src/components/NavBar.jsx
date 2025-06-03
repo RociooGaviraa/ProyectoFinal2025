@@ -33,24 +33,23 @@ const Navbar = () => {
     const isAdmin = user && user.roles && user.roles.includes('ROLE_ADMIN');
 
     return (
-        <nav className="bg-white shadow-sm border-b border-gray-200">
+        <nav className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-gray-200">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
                     <div className="flex items-center flex-shrink-0">
                         <Link to="/" className="flex items-center gap-2">
                             <img src={logo} alt="Eventfy Logo" className="h-10 w-10 object-contain" />
-                            <span className="text-2xl font-extrabold text-blue-900 tracking-tight">Eventfy</span>
+                            <span className="text-2xl font-bold text-teal-800 tracking-tight">Eventfy</span>
                         </Link>
                     </div>
-                    {/* Enlaces centrales */}
-                    <div className="hidden md:flex md:gap-8 md:ml-12">
+                    {/* Enlaces */}
+                    <div className="hidden md:flex md:gap-8 flex-1 justify-center">
                         <Link to="/events" className="text-base font-medium text-gray-700 hover:text-blue-900 transition">Eventos</Link>
-                        <Link to="/map" className="text-base font-medium text-gray-700 hover:text-blue-900 transition">Mapa</Link>
                         <Link to="/events/create" className="text-base font-medium text-gray-700 hover:text-blue-900 transition">Crear Evento</Link>
                     </div>
-                    {/* Botones de la derecha */}
-                    <div className="flex items-center gap-4 relative">
+                    {/* Avatar o botones */}
+                    <div className="flex items-center gap-4 flex-shrink-0 w-56 justify-end">
                         {user ? (
                             <div className="relative" ref={menuRef}>
                                 <button
@@ -72,13 +71,6 @@ const Navbar = () => {
                                             onClick={() => setMenuOpen(false)}
                                         >
                                             Perfil
-                                        </Link>
-                                        <Link
-                                            to="/mis-eventos"
-                                            className="block px-4 py-2 text-gray-800 hover:bg-gray-100 transition"
-                                            onClick={() => setMenuOpen(false)}
-                                        >
-                                            Mis Eventos
                                         </Link>
                                         {/* Botón de admin solo para admins */}
                                         {isAdmin && (
@@ -102,7 +94,9 @@ const Navbar = () => {
                             </div>
                         ) : (
                             <>
-                                <Link to="/login" className="px-4 py-2 rounded-md font-semibold text-base text-white bg-blue-900 hover:bg-blue-800 transition">Iniciar Sesión</Link>
+                                {/* Avatar invisible para reservar espacio */}
+                                <div className="w-12 h-12 rounded-full opacity-0 bg-gray-100 flex items-center justify-center text-lg font-bold text-gray-700" />
+                                <Link to="/login" className="px-3 py-2 rounded-md font-semibold text-base text-white bg-blue-900 hover:bg-blue-800 transition whitespace-nowrap">Iniciar Sesión</Link>
                                 <Link to="/register" className="px-4 py-2 rounded-md font-semibold text-base text-blue-900 border border-blue-900 hover:bg-blue-900 hover:text-white transition">Registrarse</Link>
                             </>
                         )}

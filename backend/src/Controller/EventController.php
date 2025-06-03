@@ -38,8 +38,12 @@ class EventController extends AbstractController
     }
 
     #[Route('/{id}', name: 'event_show', methods: ['GET'])]
-    public function show(Event $event): JsonResponse
+    public function show(int $id, EventRepository $eventRepository): JsonResponse
     {
+        $event = $eventRepository->find($id);
+        if (!$event) {
+            return new JsonResponse(['error' => 'Evento no encontrado'], 404);
+        }
         $data = [
             'id' => $event->getId(),
             'title' => $event->getTitle(),

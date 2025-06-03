@@ -192,21 +192,20 @@ export const api = {
         });
         if (!response.ok) throw new Error('No se pudo obtener el perfil');
         const data = await response.json();
+        console.log('Respuesta cruda:', data);
         return data.user;
     },
 
-    updateUserProfile: async (profileData) => {
+    updateUserProfile: async (data) => {
         const token = localStorage.getItem('jwt_token');
-        const response = await fetch('http://localhost:8000/api/me', {
+        const response = await fetch(`${API_URL}/user/profile`, {
             method: 'PUT',
             headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify(profileData)
+            body: data
         });
-        if (!response.ok) throw new Error('No se pudo actualizar el perfil');
+        if (!response.ok) throw new Error('Error al actualizar el perfil');
         return response.json();
     },
 
@@ -316,6 +315,19 @@ export const api = {
             body: JSON.stringify(eventData),
         });
         if (!response.ok) throw new Error('No se pudo actualizar el evento');
+        return response.json();
+    },
+
+    deleteEvent: async (eventId) => {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch(`http://localhost:8000/api/events/${eventId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (!response.ok) throw new Error('No se pudo borrar el evento');
         return response.json();
     },
 

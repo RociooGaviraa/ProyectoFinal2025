@@ -16,6 +16,7 @@ const UserProfile = () => {
         name: '',
         surname: '',
         birthDate: '',
+        avatar: '',
     });
     const [activeTab, setActiveTab] = useState('inscritos');
     const [myCreatedEvents, setMyCreatedEvents] = useState([]);
@@ -23,15 +24,11 @@ const UserProfile = () => {
     const [favorites, setFavorites] = useState([]);
     const [editingEventId, setEditingEventId] = useState(null);
     const [editFormData, setEditFormData] = useState({});
-    // Simulación de datos adicionales para el diseño
-    const intereses = ['Música', 'Arte', 'Deportes'];
-    const rating = 5.0;
-    const eventosOrganizados = 0;
-    const eventosAsistidos = 0;
-    const fechaRegistro = profile?.createdAt || 'mayo de 2025'; // Simulado
+
     const navigate = useNavigate();
 
     useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
         fetchUserData();
         fetchFavorites();
     }, []);
@@ -40,13 +37,14 @@ const UserProfile = () => {
         try {
             setLoading(true);
             const profileData = await api.getUserProfile();
-            setProfile(profileData);
+            setProfile(profileData.user || profileData);
             setFormData({
-                username: profileData.username || "",
-                email: profileData.email || "",
-                name: profileData.name || "",
-                surname: profileData.surname || "",
-                birthDate: profileData.birthDate ? profileData.birthDate.slice(0, 10) : "",
+                username: (profileData.user || profileData).username || "",
+                email: (profileData.user || profileData).email || "",
+                name: (profileData.user || profileData).name || "",
+                surname: (profileData.user || profileData).surname || "",
+                birthDate: (profileData.user || profileData).birthDate ? (profileData.user || profileData).birthDate.slice(0, 10) : "",
+                avatar: (profileData.user || profileData).avatar || "",
             });
             const eventsData = await api.getUserEvents(profileData.id);
             // Obtener asistentes reales para eventos inscritos
@@ -95,15 +93,21 @@ const UserProfile = () => {
             }));
             setFavorites(favsWithAttendees);
         } catch (err) {
-            // Puedes mostrar un error si quieres
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await api.updateUserProfile(formData);
-            setProfile({ ...profile, ...formData });
+            const form = new FormData();
+            form.append('username', formData.username);
+            form.append('email', formData.email);
+            form.append('name', formData.name);
+            form.append('surname', formData.surname);
+            form.append('birthDate', formData.birthDate);
+            form.append('avatar', formData.avatar);
+            const response = await api.updateUserProfile(form);
+            setProfile(response.user);
             setIsEditing(false);
         } catch (err) {
             setError(err.message);
@@ -120,6 +124,8 @@ const UserProfile = () => {
     if (!profile) {
         return null;
     }
+
+    console.log(profile);
 
     // Avatar con iniciales
     const getInitials = (name, surname, username) => {
@@ -140,20 +146,71 @@ const UserProfile = () => {
                 <div className="bg-white rounded-xl shadow p-6 flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                     <div className="flex items-center gap-6">
                         {/* Avatar */}
-                        <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold text-gray-700">
-                            {getInitials(profile.name, profile.surname, profile.username)}
-                        </div>
+                        {profile.avatar ? (
+                            <img
+                                src={profile.avatar.startsWith('http') ? profile.avatar : `http://localhost:8000${profile.avatar}`}
+                                alt="Avatar"
+                                className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                            />
+                        ) : (
+                            <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold text-gray-700">
+                                {getInitials(profile.name, profile.surname, profile.username)}
+                            </div>
+                        )}
                         <div>
                             <div className="flex items-center gap-2 mb-1">
                                 <span className="text-2xl font-bold text-gray-900">{profile.name} {profile.surname}</span>
                             </div>
-                            <div className="flex items-center text-gray-600 text-sm gap-2">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 12A4 4 0 1 1 8 12a4 4 0 0 1 8 0Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 14v7m0 0H9m3 0h3" /></svg>
-                                <span>{profile.email}</span>
-                            </div>
-                            <div className="flex items-center text-gray-600 text-sm gap-2 mt-1">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10m-9 4h6" /></svg>
-                                <span>Miembro desde {fechaRegistro}</span>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                                <div className="flex items-center bg-gray-50 rounded-lg p-3 gap-3">
+                                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 12A4 4 0 1 1 8 12a4 4 0 0 1 8 0Z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 14v7m0 0H9m3 0h3" />
+                                    </svg>
+                                    <div>
+                                        <div className="text-xs text-gray-500">Correo electrónico</div>
+                                        <div className="font-semibold text-gray-800">{profile.email}</div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center bg-gray-50 rounded-lg p-3 gap-3">
+                                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    <div>
+                                        <div className="text-xs text-gray-500">Usuario</div>
+                                        <div className="font-semibold text-gray-800">{profile.username}</div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center bg-gray-50 rounded-lg p-3 gap-3">
+                                    <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" />
+                                    </svg>
+                                    <div>
+                                        <div className="text-xs text-gray-500">Fecha de nacimiento</div>
+                                        <div className="font-semibold text-gray-800">{profile.birthDate ? new Date(profile.birthDate).toLocaleDateString('es-ES') : '---'}</div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center bg-gray-50 rounded-lg p-3 gap-3">
+                                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v4a1 1 0 001 1h3m10 0h3a1 1 0 001-1V7m-1-4H5a2 2 0 00-2 2v16a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z" />
+                                    </svg>
+                                    <div>
+                                        <div className="font-semibold text-gray-800">{profile.roles ? profile.roles.join(', ') : '---'}</div>
+                                    </div>
+                                </div>
+
+                                {profile.profile && (
+                                    <div className="flex items-center bg-gray-50 rounded-lg p-3 gap-3">
+                                        <svg className="w-6 h-6 text-cyan-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        <div>
+                                            <div className="text-xs text-gray-500">Perfil</div>
+                                            <div className="font-semibold text-gray-800">{profile.profile}</div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -162,33 +219,8 @@ const UserProfile = () => {
                             onClick={() => setIsEditing(true)}
                             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-100 transition font-medium"
                         >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 1 1 2.828 2.828L11.828 15.828a4 4 0 0 1-1.414.828l-4 1a1 1 0 0 1-1.263-1.263l1-4a4 4 0 0 1 .828-1.414Z" /></svg>
-                            Editar Perfil
+                            ✏️Editar Perfil
                         </button>
-                    </div>
-                </div>
-                {/* Estadísticas */}
-                <div className="bg-white rounded-xl shadow p-6 flex flex-col md:flex-row items-center justify-between mb-6">
-                    <div className="flex-1 flex flex-col items-center">
-                        <span className="text-3xl font-bold text-gray-900">{rating}</span>
-                        <span className="text-gray-500 text-sm">Calificación</span>
-                    </div>
-                    <div className="flex-1 flex flex-col items-center">
-                        <span className="text-3xl font-bold text-green-600">{eventosOrganizados}</span>
-                        <span className="text-gray-500 text-sm">Eventos Organizados</span>
-                    </div>
-                    <div className="flex-1 flex flex-col items-center">
-                        <span className="text-3xl font-bold text-gray-900">{eventosAsistidos}</span>
-                        <span className="text-gray-500 text-sm">Eventos Asistidos</span>
-                    </div>
-                </div>
-                {/* Intereses */}
-                <div className="bg-white rounded-xl shadow p-6 mb-6">
-                    <h3 className="text-gray-800 font-semibold mb-2">Intereses</h3>
-                    <div className="flex flex-wrap gap-2">
-                        {intereses.map((interes, idx) => (
-                            <span key={idx} className="bg-cyan-700 text-white px-3 py-1 rounded-full text-sm font-medium">{interes}</span>
-                        ))}
                     </div>
                 </div>
                 {/* Tabs y eventos */}
@@ -500,7 +532,7 @@ const UserProfile = () => {
                     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
                         <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
                             <h2 className="text-xl font-bold mb-4">Editar Perfil</h2>
-                            <form onSubmit={handleSubmit} className="space-y-4">
+                            <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">Nombre</label>
                                     <input
@@ -544,6 +576,16 @@ const UserProfile = () => {
                                         value={formData.birthDate}
                                         onChange={e => setFormData({ ...formData, birthDate: e.target.value })}
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Avatar (URL de imagen)</label>
+                                    <input
+                                        type="text"
+                                        placeholder="https://..."
+                                        value={formData.avatar || ""}
+                                        onChange={e => setFormData({ ...formData, avatar: e.target.value })}
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
                                     />
                                 </div>
                                 <div className="flex justify-end gap-2 mt-6">

@@ -54,7 +54,8 @@ const CreateEvent = () => {
                 category: formData.type,
                 capacity: formData.maxParticipants,
                 subcategory: formData.subcategory,
-                price: formData.price
+                price: formData.price,
+                image: formData.imageUrl || null
             };
 
             await api.createEvent(eventData);
@@ -140,11 +141,11 @@ const CreateEvent = () => {
                             onChange={(e) => setFormData({...formData, type: e.target.value})}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                         >
-                            <option value="conference">Conferencia</option>
-                            <option value="workshop">Taller</option>
-                            <option value="seminar">Seminario</option>
-                            <option value="networking">Networking</option>
-                            <option value="other">Otro</option>
+                            <option value="Conciertos y Festivales">Conciertos y Festivales</option>
+                            <option value="Moda">Moda</option>
+                            <option value="Cine y Teatro">Cine y Teatro</option>
+                            <option value="Deporte">Deporte</option>
+                            <option value="Gastronomía">Gastronomía</option>
                         </select>
                     </div>
                     <div>

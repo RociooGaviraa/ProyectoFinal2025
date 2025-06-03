@@ -12,6 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Event;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 #[Route('/api')]
 final class UserController extends AbstractController
@@ -70,6 +72,7 @@ final class UserController extends AbstractController
             'username' => $user->getUsername(),
             'name' => $user->getName(),
             'surname' => $user->getSurname(),
+            'avatar' => $user->getAvatar(),
         ]);
     }
 
@@ -97,5 +100,62 @@ final class UserController extends AbstractController
             ];
         }
         return new JsonResponse($data);
+    }
+
+    #[Route('/user/profile', name: 'update_user_profile', methods: ['PUT', 'POST'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function updateProfile(Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $user = $this->getUser();
+
+        // Si es multipart/form-data, usa $request->files y $request->request
+        $data = $request->request->all();
+
+        if (isset($data['name'])) $user->setName($data['name']);
+        if (isset($data['surname'])) $user->setSurname($data['surname']);
+        if (isset($data['email'])) $user->setEmail($data['email']);
+        if (isset($data['username'])) $user->setUsername($data['username']);
+        if (isset($data['birthDate'])) $user->setBirthDate(new \DateTime($data['birthDate']));
+
+        $avatarUrl = $request->request->get('avatar');
+        error_log('Avatar recibido: ' . $avatarUrl);
+        if ($avatarUrl) {
+            $user->setAvatar($avatarUrl);
+        }
+
+        $em->flush();
+
+        return $this->json([
+            'message' => 'Perfil actualizado correctamente',
+            'user' => [
+                'id' => $user->getId(),
+                'name' => $user->getName(),
+                'surname' => $user->getSurname(),
+                'email' => $user->getEmail(),
+                'username' => $user->getUsername(),
+                'birthDate' => $user->getBirthDate()?->format('Y-m-d'),
+                'roles' => $user->getRoles(),
+                'avatar' => $user->getAvatar(),
+            ]
+        ]);
+    }
+
+    #[Route('/me', name: 'get_my_profile', methods: ['GET'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function getMyProfile(): JsonResponse
+    {
+        $user = $this->getUser();
+        return $this->json([
+            'user' => [
+                'id' => $user->getId(),
+                'name' => $user->getName(),
+                'surname' => $user->getSurname(),
+                'email' => $user->getEmail(),
+                'username' => $user->getUsername(),
+                'birthDate' => $user->getBirthDate()?->format('Y-m-d'),
+                'roles' => $user->getRoles(),
+                'avatar' => $user->getAvatar(),
+            ]
+        ]);
     }
 }
