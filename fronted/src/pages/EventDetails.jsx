@@ -119,7 +119,7 @@ const EventDetails = () => {
             if (data.url) {
                 window.location.href = data.url;
             } else {
-                toast.error('No se pudo iniciar el pago.');
+                toast.error(data.error || 'No se pudo iniciar el pago.');
             }
         } catch (err) {
             toast.error('Error al conectar con Stripe.');
