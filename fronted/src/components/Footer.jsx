@@ -30,7 +30,6 @@ const Footer = () => {
             <h3 className="text-base font-semibold mb-2 text-primary">Enlaces rápidos</h3>
             <ul className="space-y-1 text-sm text-gray-400">
               <li><Link to="/events" className="hover:text-white transition">Eventos</Link></li>
-              <li><Link to="/map" className="hover:text-white transition">Mapa</Link></li>
               <li><Link to="/events/create" className="hover:text-white transition">Crear evento</Link></li>
             </ul>
           </div>
@@ -41,7 +40,7 @@ const Footer = () => {
             <p className="text-sm text-gray-400 leading-snug">
               <span className="text-white font-medium">Email:</span> info@eventfy.com<br />
               <span className="text-white font-medium">Tel:</span> +34 123 456 789<br />
-              <span className="text-white font-medium">Dirección:</span> Calle Ficticia 123, Madrid
+              <span className="text-white font-medium">Dirección:</span> Gran Via 21, Madrid
             </p>
           </div>
         </div>

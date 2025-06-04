@@ -1,36 +1,39 @@
 security:
-    password_hashers:
-        App\Entity\User:
-            algorithm: auto
+  password_hashers:
+    App\Entity\User:
+      algorithm: auto
 
-    providers:
-        app_user_provider:
-            entity:
-                class: App\Entity\User
-                property: email
+  providers:
+    app_user_provider:
+      entity:
+        class: App\Entity\User
+        property: email
 
-    firewalls:
-        dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
-            security: false
-        
-        login:
-            pattern: ^/api/login_check
-            stateless: true
-            json_login:
-                check_path: /api/login_check
-                username_path: email
-                password_path: password
-                success_handler: lexik_jwt_authentication.handler.authentication_success
-                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+  firewalls:
+    dev:
+      pattern: ^/(_(profiler|wdt)|css|images|js)/
+      security: false
 
-        api:
-            pattern: ^/api
-            stateless: true
-            jwt: ~
+    login:
+      pattern: ^/api/login_check
+      stateless: true
+      json_login:
+        check_path: /api/login_check
+        username_path: email
+        password_path: password
+        success_handler: lexik_jwt_authentication.handler.authentication_success
+        failure_handler: lexik_jwt_authentication.handler.authentication_failure
 
-    access_control:
-        - { path: ^/api/login_check, roles: PUBLIC_ACCESS }
-        - { path: ^/api/register, roles: PUBLIC_ACCESS }
-        - { path: ^/api/events, roles: PUBLIC_ACCESS }
-        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+    api:
+      pattern: ^/api
+      stateless: true
+      jwt: ~
+
+  access_control:
+    - { path: ^/api/login_check, roles: PUBLIC_ACCESS }
+    - { path: ^/api/register, roles: PUBLIC_ACCESS }
+    - { path: ^/api/events$, roles: PUBLIC_ACCESS }
+    - { path: ^/api/events/category/, roles: PUBLIC_ACCESS }
+    - { path: ^/api/events/detail/, roles: PUBLIC_ACCESS }
+    - { path: ^/api/events/init, roles: PUBLIC_ACCESS }
+    - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }

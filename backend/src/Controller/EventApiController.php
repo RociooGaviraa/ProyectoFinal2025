@@ -16,9 +16,12 @@ use App\Service\StripeService;
 #[Route('/api', name: 'api_')]
 class EventApiController extends AbstractController
 {
-    #[Route('/events', name: 'events_list', methods: ['GET'])]
+    #[Route('/events', name: 'events_list', methods: ['GET', 'OPTIONS'])]
     public function list(EventRepository $eventRepository, \App\Repository\EventParticipantRepository $eventParticipantRepository): JsonResponse
     {
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            return new JsonResponse(null, 204);
+        }
         $events = $eventRepository->findAll();
         $data = [];
 
@@ -43,9 +46,12 @@ class EventApiController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route('/events/category/{category}', name: 'events_by_category', methods: ['GET'])]
+    #[Route('/events/category/{category}', name: 'events_by_category', methods: ['GET', 'OPTIONS'])]
     public function listByCategory(string $category, EventRepository $eventRepository): JsonResponse
     {
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            return new JsonResponse(null, 204);
+        }
         $events = $eventRepository->findBy(['category' => $category]);
         $data = [];
 
@@ -66,9 +72,12 @@ class EventApiController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route('/events/detail/{id}', name: 'event_show', methods: ['GET'])]
+    #[Route('/events/detail/{id}', name: 'event_show', methods: ['GET', 'OPTIONS'])]
     public function show(int $id, EventRepository $eventRepository): JsonResponse
     {
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            return new JsonResponse(null, 204);
+        }
         $event = $eventRepository->find($id);
         
         if (!$event) {
@@ -203,9 +212,12 @@ class EventApiController extends AbstractController
         ], 401);
     }
 
-    #[Route('/events', name: 'event_create', methods: ['POST'])]
+    #[Route('/events', name: 'event_create', methods: ['POST', 'OPTIONS'])]
     public function create(Request $request, EntityManagerInterface $entityManager, #[CurrentUser] ?\App\Entity\User $user = null, StripeService $stripeService): JsonResponse
     {
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            return new JsonResponse(null, 204);
+        }
         if (!$user) {
             return new JsonResponse(['error' => 'No autenticado'], 401);
         }
@@ -288,11 +300,14 @@ class EventApiController extends AbstractController
         ], 201);
     }
 
-    #[Route('/events/mine', name: 'my_events', methods: ['GET'])]
+    #[Route('/events/mine', name: 'my_events', methods: ['GET', 'OPTIONS'])]
     public function myEvents(
         EventParticipantRepository $eventParticipantRepository,
         #[CurrentUser] ?\App\Entity\User $user = null
     ): JsonResponse {
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            return new JsonResponse(null, 204);
+        }
         if (!$user) {
             return new JsonResponse(['error' => 'No autenticado'], 401);
         }
@@ -318,11 +333,14 @@ class EventApiController extends AbstractController
         return new JsonResponse($events);
     }
 
-    #[Route('/events/created', name: 'my_created_events', methods: ['GET'])]
+    #[Route('/events/created', name: 'my_created_events', methods: ['GET', 'OPTIONS'])]
     public function myCreatedEvents(
         EventRepository $eventRepository,
         #[CurrentUser] ?\App\Entity\User $user = null
     ): JsonResponse {
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            return new JsonResponse(null, 204);
+        }
         if (!$user) {
             return new JsonResponse(['error' => 'No autenticado'], 401);
         }
@@ -347,13 +365,16 @@ class EventApiController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route('/events/{id}', name: 'event_detail', methods: ['GET'])]
+    #[Route('/events/{id}', name: 'event_detail', methods: ['GET', 'OPTIONS'])]
     public function getEventById(
         int $id,
         EventRepository $eventRepository,
         \App\Repository\EventParticipantRepository $eventParticipantRepository,
         #[CurrentUser] ?\App\Entity\User $user = null
     ): JsonResponse {
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            return new JsonResponse(null, 204);
+        }
         $event = $eventRepository->find($id);
         if (!$event) {
             return new JsonResponse(['error' => 'Event not found'], 404);
@@ -394,9 +415,12 @@ class EventApiController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route('/events/{id}/join', name: 'event_join', methods: ['POST'])]
+    #[Route('/events/{id}/join', name: 'event_join', methods: ['POST', 'OPTIONS'])]
     public function joinEvent(int $id, EventRepository $eventRepository, EntityManagerInterface $em, #[CurrentUser] ?User $user): JsonResponse
     {
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            return new JsonResponse(null, 204);
+        }
         if (!$user) {
             return new JsonResponse(['error' => 'No autenticado'], 401);
         }
@@ -412,9 +436,12 @@ class EventApiController extends AbstractController
         return new JsonResponse(['message' => 'Inscripción exitosa']);
     }
 
-    #[Route('/events/{id}/leave', name: 'event_leave', methods: ['POST'])]
+    #[Route('/events/{id}/leave', name: 'event_leave', methods: ['POST', 'OPTIONS'])]
     public function leaveEvent(int $id, EventRepository $eventRepository, EntityManagerInterface $em, #[CurrentUser] ?User $user): JsonResponse
     {
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            return new JsonResponse(null, 204);
+        }
         if (!$user) {
             return new JsonResponse(['error' => 'No autenticado'], 401);
         }
@@ -430,9 +457,12 @@ class EventApiController extends AbstractController
         return new JsonResponse(['message' => 'Inscripción cancelada']);
     }
 
-    #[Route('/events/{id}', name: 'event_update', methods: ['PUT', 'PATCH'])]
+    #[Route('/events/{id}', name: 'event_update', methods: ['PUT', 'PATCH', 'OPTIONS'])]
     public function update(Event $event, Request $request, EntityManagerInterface $em): JsonResponse
     {
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            return new JsonResponse(null, 204);
+        }
         $data = json_decode($request->getContent(), true);
 
         $event->setTitle($data['title'] ?? $event->getTitle());
